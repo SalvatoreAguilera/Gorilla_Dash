@@ -1,6 +1,6 @@
 all: background
 
-background: background.cpp
+background: background.cpp 
 	g++ background.cpp -Wall -lX11 -lGL -lGLU -lm
 
 clean:
