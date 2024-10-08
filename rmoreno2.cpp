@@ -1,32 +1,21 @@
 // Ramon Moreno
 // Modified: 10/8/24
 // Feature for game
+#include "changes.h"
+#include <GL/glut.h>
 #include <GL/freeglut.h>
-#include <string>
 
-class Global {
-public:
-    // make a title screen
-    bool show_title_screen;
-    std::string game_name;
-    std::string start_message;
-    Global() {
-        show_title_screen = true;
-        game_name = "Jetpack Adventure";
-        start_message = "Press Space to Start";
-    }
-} g;
+// title screen variables
+bool show_title_screen = true;
+std::string game_name = "Gorilla Dash";
+std::string start_message = "Press Space to Start";
 
-void render_title_screen();
+// Implement the new functions
+void init_title_screen() {
+    // To be added
+}
 
-if (g.show_title_screen) {
-            render_title_screen();
-        }
-if (g.show_title_screen && key == XK_space) {
-            g.show_title_screen = false;
-        }
-void render_title_screen()
-{
+void render_title_screen() {
     glClear(GL_COLOR_BUFFER_BIT);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
@@ -35,15 +24,22 @@ void render_title_screen()
     glColor3f(1.0f, 1.0f, 1.0f);
 
     // Render game name
-    glRasterPos2f(g.xres / 2 - 100, g.yres / 2 + 50);
-    for (char c : g.game_name) {
+    glRasterPos2f(640 / 2 - 100, 480 / 2 + 50);  // Assuming 640x480 resolution
+    for (char c : game_name) {
         glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, c);
     }
 
     // Render start message
-    glRasterPos2f(g.xres / 2 - 80, g.yres / 2 - 50);
-    for (char c : g.start_message) {
+    glRasterPos2f(640 / 2 - 80, 480 / 2 - 50);
+    for (char c : start_message) {
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, c);
     }
 }
-glutInit(&argc, argv);
+
+bool handle_title_screen_input(int key) {
+    if (show_title_screen && key == ' ') {
+        show_title_screen = false;
+        return true;
+    }
+    return false;
+}
