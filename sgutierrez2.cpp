@@ -58,8 +58,8 @@ public:
 
 /*
 function to create the spritesheet
-uses image class to read in the sprtiesheetand calls the drawSprite function to get the coordinates of the sprite
-more work needs to be done to render the sprite whne right arrow key is pressed
+uses image class to read in the sprtiesheet and calls the drawSprite function to get the coordinates of the sprite
+more work needs to be done to render the sprite when right arrow key is pressed
 
 void createSheet() {
 	Image sprite[1] = { "sprite.png" };
