@@ -1,18 +1,49 @@
 // Ramon Moreno
-// Add date modified/last time it was modified
-// what it is for 
+// Modified: 10/8/24
+// Feature for game
+#include <GL/freeglut.h>
+#include <string>
 
-#include "fonts.h"
+class Global {
+public:
+    // make a title screen
+    bool show_title_screen;
+    std::string game_name;
+    std::string start_message;
+    Global() {
+        show_title_screen = true;
+        game_name = "Jetpack Adventure";
+        start_message = "Press Space to Start";
+    }
+} g;
 
-int show_x = 0;
+void render_title_screen();
 
-void show_my_feature(int x, int y)
+if (g.show_title_screen) {
+            render_title_screen();
+        }
+if (g.show_title_screen && key == XK_space) {
+            g.show_title_screen = false;
+        }
+void render_title_screen()
 {
-    // draw a rectangle
-    // show some text
-    Rect r;
-    r.bot = y;
-    r.left = x;
-    r.center = 0;
-    ggprint8b(&r, 16, 0x0000ff00, "hello");
+    glClear(GL_COLOR_BUFFER_BIT);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+    // Set text color to white
+    glColor3f(1.0f, 1.0f, 1.0f);
+
+    // Render game name
+    glRasterPos2f(g.xres / 2 - 100, g.yres / 2 + 50);
+    for (char c : g.game_name) {
+        glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, c);
+    }
+
+    // Render start message
+    glRasterPos2f(g.xres / 2 - 80, g.yres / 2 - 50);
+    for (char c : g.start_message) {
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, c);
+    }
 }
+glutInit(&argc, argv);
