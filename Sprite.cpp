@@ -49,3 +49,4 @@ public:
         glDisableClientState(GL_TEXTURE_COORD_ARRAY);
     }
 };
+
