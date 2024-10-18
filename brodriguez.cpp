@@ -104,7 +104,7 @@ int main()
 		while (x11.getXPending()) {
 			XEvent e = x11.getXNextEvent();
 			x11.check_resize(&e);
-			x11.check_mouse(&e);
+			//x11.check_mouse(&e);
 			done = x11.check_keys(&e);
 		}
 		//physics();
@@ -210,7 +210,7 @@ void X11_wrapper::check_resize(XEvent *e)
 //-----------------------------------------------------------------------------
 
 #define rnd() (float)rand() / (float)RAND_MAX
-void X11_wrapper::check_mouse(XEvent *e)
+/*void X11_wrapper::check_mouse(XEvent *e)
 {
 	static int savex = 0;
 	static int savey = 0;
@@ -267,7 +267,7 @@ void X11_wrapper::check_mouse(XEvent *e)
 
 		}
 	}
-}
+}*/
 
 int X11_wrapper::check_keys(XEvent *e)
 {
