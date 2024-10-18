@@ -1,35 +1,71 @@
-// Bryan Rodriguez
+//
+//modified by: Bryan Rodriguez
+//date: 10/01/2024
+//
+//original author: Gordon Griesel
+//date:            Fall 2024
+//purpose:         OpenGL sample program
+//
+//This program needs some refactoring.
+//We will do this in class together.
+//
 //
 #include <iostream>
 using namespace std;
 #include <stdio.h>
 #include <unistd.h>
 #include <cstdlib>
+#include <ctime>
+#include <cstring>
 #include <cmath>
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
 #include <GL/glx.h>
-#include <GL/gl.h>
+#include <GL/freeglut.h>
+#include <GL/glut.h>
+const int MAX_PARTICLES = 1000;
 
-//some structures
 class Global {
 public:
 	int xres, yres;
 	Global();
 } g;
 
-class Platform {
+class Box {
 public:
-    float pos[2];
+    float pos[10];
     float last_pos[2];
+    float vel[2];
     int w, h;
-    Platform() {
-        pos[0] = g.xres / 2;
-        pos[1] = g.yres / 2;
+    Box() {
         w = 100;
-        h = 50;
+        h = 25;
+        //box 1
+        pos[0] = g.xres / 2.15;
+        pos[1] = g.yres / 2;
+        
+        //box 2
+        pos[2] = g.xres / 1.6;
+        pos[3] = g.yres / 2.5;
+        
+        //box 3
+        pos[4] = g.xres / 1.3;
+        pos[5] = g.yres / 3.35;
+        
+        //box 4
+        pos[6] = pos[0] - w * 2 + (w / 1.5);
+        pos[7] = pos[1] + h * 2.5;
+        
+        //box 5
+        pos[8] = pos[6] - w * 2 + (w / 1.25);
+        pos[9] = pos[7] + h * 2.5;
+        
+        vel[0] = 0.7f; 
+        vel[1] = 0.0f;
     }
-} platform;
+} box;
+//Box particle[MAX_PARTICLES];
+int n = 0;
 
 class X11_wrapper {
 private:
@@ -42,11 +78,11 @@ public:
 	void set_title();
 	bool getXPending();
 	XEvent getXNextEvent();
-    void swapBuffers();
+	void swapBuffers();
 	void reshape_window(int width, int height);
 	void check_resize(XEvent *e);
-	//void check_mouse(XEvent *e);
-	//int check_keys(XEvent *e);
+	void check_mouse(XEvent *e);
+	int check_keys(XEvent *e);
 } x11;
 
 //Function prototypes
@@ -54,9 +90,12 @@ void init_opengl(void);
 void physics(void);
 void render(void);
 
-/*
+
 int main()
 {
+    int argc = 1;
+    const char *argv[1] = { "app" };
+    glutInit(&argc, (char**)argv);
 	init_opengl();
 	int done = 0;
 	//main game loop
@@ -68,14 +107,14 @@ int main()
 			x11.check_mouse(&e);
 			done = x11.check_keys(&e);
 		}
-		physics();
+		//physics();
 		render();
 		x11.swapBuffers();
 		usleep(200);
 	}
 	return 0;
 }
-*/
+
 Global::Global()
 {
 	xres = 800;
@@ -122,7 +161,7 @@ void X11_wrapper::set_title()
 {
 	//Set the window title bar.
 	XMapWindow(dpy, win);
-	XStoreName(dpy, win, "3350 Lab-1");
+	XStoreName(dpy, win, "3350 Lab-6");
 }
 
 bool X11_wrapper::getXPending()
@@ -169,9 +208,9 @@ void X11_wrapper::check_resize(XEvent *e)
 	}
 }
 //-----------------------------------------------------------------------------
-/*
+
 #define rnd() (float)rand() / (float)RAND_MAX
-void X11_wrapper::check_mouse(XEvent *e)
+/*void X11_wrapper::check_mouse(XEvent *e)
 {
 	static int savex = 0;
 	static int savey = 0;
@@ -262,48 +301,107 @@ void init_opengl(void)
 }
 /*
 const float GRAVITY = -0.1;
-//#define rnd() (float)rand() / (float)RAND_MAX
 void physics()
 {
-    for (int i=0; i<n; i++) {
-	    particle[i].vel[1] += GRAVITY;
+    for (int i = 0; i < n; i++) {
+        // Apply gravity
+        particle[i].vel[1] += GRAVITY;
         particle[i].last_pos[0] = particle[i].pos[0];
         particle[i].last_pos[1] = particle[i].pos[1];
-	    particle[i].pos[0] += particle[i].vel[0];
-	    particle[i].pos[1] += particle[i].vel[1];
+        particle[i].pos[0] += particle[i].vel[0];
+        particle[i].pos[1] += particle[i].vel[1];
     }
-    //collision detection
-    for (int i=0; i<n; i++) {
-	    if (particle[i].pos[1] < box.pos[1]+box.h && 
-	        particle[i].pos[1] > box.pos[1]-box.h &&
-	        particle[i].pos[0] > box.pos[0]-box.w &&
-	        particle[i].pos[0] < box.pos[0]+box.w) {
-            //in a collision state
-	        //particle[i].pos[0] = particle[i].last_pos[0];
-	        particle[i].pos[1] = particle[i].last_pos[1];
-	        particle[i].vel[1] = -particle[i].vel[1] * 0.5;
-	        particle[i].vel[0] += rnd() * 0.04;
+    
+    // Collision detection for all boxes
+    for (int i = 0; i < n; i++) {
+        // Iterate over the boxes (each box has an x and y position)
+        for (int j = 0; j < 9; j += 2) {
+            // Check if particle is within the bounds of the current box
+            if (particle[i].pos[1] < box.pos[j+1] + box.h &&
+                particle[i].pos[1] > box.pos[j+1] - box.h &&
+                particle[i].pos[0] > box.pos[j] - box.w &&
+                particle[i].pos[0] < box.pos[j] + box.w) {
+                // In a collision state with box j/2 (box #1, #2, etc.)
+                particle[i].pos[1] = particle[i].last_pos[1];
+                particle[i].vel[1] = -particle[i].vel[1] * 0.5;
+                particle[i].vel[0] += rnd() * 0.04;
+            }
         }
+        // Remove particle if it goes off-screen
         if (particle[i].pos[1] < 0) {
-            //delete this particle
             particle[i] = particle[--n];
         }
     }
 }
 */
+/*void renderBitmapString(float x, float y, void *font, const char *string) {
+    glRasterPos2f(x, y);
+    for (const char *c = string; *c != '\0'; c++) {
+        glutBitmapCharacter(font, *c);
+    }
+}
+
+void renderText(const char* message) {
+    glColor3f(1.0f, 1.0f, 1.0f);
+
+    float textWidth = glutBitmapLength(GLUT_BITMAP_HELVETICA_18, 
+                                       (const unsigned char*)message);
+    float textX = -(textWidth / 2.0f); // Center horizontally
+    float textY = -4.0f; // Center vertically
+
+    glRasterPos2f(textX, textY);
+
+    renderBitmapString(textX, textY, GLUT_BITMAP_HELVETICA_18, message);
+}*/
+
 void render()
 {
 	glClear(GL_COLOR_BUFFER_BIT);
-	//draw a platform
-    glPushMatrix();
-	glColor3ub(100, 120, 220);
-	glTranslatef(platform.pos[0], platform.pos[1], 0.0f);
-	glBegin(GL_QUADS);
-		glVertex2f(-platform.w, -platform.h);
-		glVertex2f(-platform.w,  platform.h);
-		glVertex2f( platform.w,  platform.h);
-        glColor3ub(200, 0, 0);
-		glVertex2f( platform.w, -platform.h);
-	glEnd();
-	glPopMatrix();
+	//draw 5 boxes
+    for (int i = 0; i < 9; i++) {
+        glPushMatrix();
+	    glColor3ub(175, 60, 110);
+	    glTranslatef(box.pos[i]+1, box.pos[i+1], 0.0f);
+	    glBegin(GL_QUADS);
+		    glVertex2f(-box.w, -box.h);
+		    glVertex2f(-box.w,  box.h);
+		    glVertex2f( box.w,  box.h);
+		    glVertex2f( box.w, -box.h);
+	    glEnd();
+	    
+       /* //Text in boxes
+        switch (i / 2) {
+            case 0:
+                renderText("Coding");
+                break;
+            case 1:
+                renderText("Testing");
+                break;
+            case 2:
+                renderText("Maintenance");
+                break;
+            case 3:
+                renderText("Design");
+                break;
+            case 4:
+                renderText("Requirements");
+                break;
+        }*/
+
+        glPopMatrix();
+        i++;
+    }
+    /*//draw a particle
+	for (int i=0; i<n; i++) {
+        glPushMatrix();
+	    glColor3ub(100, 120, 220);
+	    glTranslatef(particle[i].pos[0], particle[i].pos[1], 0.0f);
+	    glBegin(GL_QUADS);
+		    glVertex2f(-particle[i].w, -particle[i].h);
+		    glVertex2f(-particle[i].w,  particle[i].h);
+		    glVertex2f( particle[i].w,  particle[i].h);
+		    glVertex2f( particle[i].w, -particle[i].h);
+	    glEnd();
+	    glPopMatrix();
+    }*/
 }
