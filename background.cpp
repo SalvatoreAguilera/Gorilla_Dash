@@ -56,7 +56,7 @@ public:
 		unlink(ppmname);
 	}
 };
-Image img[1] = {"seamless_back.jpg"};
+Image img[1] = {"background1.jpg"};
 
 class Texture {
 public:
