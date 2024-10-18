@@ -38,27 +38,27 @@ public:
     float vel[2];
     int w, h;
     Box() {
-        w = 100;
+        w = 150;
         h = 25;
         //box 1
         pos[0] = g.xres / 2.15;
         pos[1] = g.yres / 2;
         
-        //box 2
+        /*//box 2
         pos[2] = g.xres / 1.6;
-        pos[3] = g.yres / 2.5;
+        pos[3] = g.yres / 2.5;*/
         
         //box 3
         pos[4] = g.xres / 1.3;
         pos[5] = g.yres / 3.35;
         
-        //box 4
+        /*//box 4
         pos[6] = pos[0] - w * 2 + (w / 1.5);
-        pos[7] = pos[1] + h * 2.5;
+        pos[7] = pos[1] + h * 2.5;*/
         
-        //box 5
+        /*//box 5
         pos[8] = pos[6] - w * 2 + (w / 1.25);
-        pos[9] = pos[7] + h * 2.5;
+        pos[9] = pos[7] + h * 2.5;*/
         
         vel[0] = 0.7f; 
         vel[1] = 0.0f;
@@ -210,7 +210,7 @@ void X11_wrapper::check_resize(XEvent *e)
 //-----------------------------------------------------------------------------
 
 #define rnd() (float)rand() / (float)RAND_MAX
-/*void X11_wrapper::check_mouse(XEvent *e)
+void X11_wrapper::check_mouse(XEvent *e)
 {
 	static int savex = 0;
 	static int savey = 0;
@@ -286,7 +286,7 @@ int X11_wrapper::check_keys(XEvent *e)
 	}
 	return 0;
 }
-*/
+
 void init_opengl(void)
 {
 	//OpenGL initialization
@@ -360,7 +360,7 @@ void render()
 	//draw 5 boxes
     for (int i = 0; i < 9; i++) {
         glPushMatrix();
-	    glColor3ub(175, 60, 110);
+	    glColor3ub(50, 205, 50);
 	    glTranslatef(box.pos[i]+1, box.pos[i+1], 0.0f);
 	    glBegin(GL_QUADS);
 		    glVertex2f(-box.w, -box.h);
