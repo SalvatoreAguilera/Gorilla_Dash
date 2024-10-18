@@ -1,7 +1,7 @@
 // Ramon Moreno
 // Modified: 10/8/24
 // Feature for game
-#include "changes.h"
+#include "feature.h"
 #include <GL/glut.h>
 #include <GL/freeglut.h>
 
