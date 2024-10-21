@@ -15,7 +15,6 @@
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
 #include <GL/glx.h>
-#include "feature.h"
 
 class Image {
 public:
@@ -177,12 +176,8 @@ int main()
 			check_mouse(&e);
 			done = check_keys(&e);
 		}
-		if (show_title_screen) {
-			render_title_screen();
-		} else {
-			physics();
-			render();
-		}
+		physics();
+		render();
 		x11.swapBuffers();
 	}
 	return 0;
@@ -219,9 +214,6 @@ void init_opengl(void)
 	g.tex.xc[1] = 0.25;
 	g.tex.yc[0] = 0.0;
 	g.tex.yc[1] = 1.0;
-	
-	glutInit(&argc, argv);
-    	init_title_screen();
 }
 
 void check_mouse(XEvent *e)
@@ -257,9 +249,6 @@ int check_keys(XEvent *e)
 		if (key == XK_Escape) {
 			return 1;
 		}
-		if (handle_title_screen_input(key)) {
-			return 0;
-		}
 	}
 	return 0;
 }
@@ -283,17 +272,3 @@ void render()
 		glTexCoord2f(g.tex.xc[1], g.tex.yc[1]); glVertex2i(g.xres, 0);
 	glEnd();
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
