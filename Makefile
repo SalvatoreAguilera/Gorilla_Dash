@@ -1,9 +1,5 @@
-all: background
-
-background: background.cpp 
-	g++ background.cpp -Wall -lX11 -lGL -lGLU -lm
+background: background.cpp Sprite.cpp 
+	g++ background.cpp Sprite.cpp -Wall -lX11 -lGL -lGLU -lm
 
 clean:
-	rm -f background a.out
-
-
+	rm -f background 

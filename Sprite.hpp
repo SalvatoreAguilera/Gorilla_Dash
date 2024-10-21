@@ -1,13 +1,19 @@
-//Link: https://stackoverflow.com/questions/1568559/rendering-sprites-from-spritesheet-with-opengl
+#ifndef SPRITE_HPP // Include guard
+#define SPRITE_HPP
+
 #include <GL/gl.h>
 
-class SpriteSheet {
-    GLuint textureID; 
+class Sprite {
+public:
+    GLuint textureID;
     int texWidth, texHeight;
     int spriteWidth, spriteHeight;
 
-public:
-    SpriteSheet(int texWidth, int texHeight, int spriteWidth, int spriteHeight) {};
+    // Constructor
+    Sprite(int texWidth, int texHeight, int spriteWidth, int spriteHeight, unsigned char *data);
 
+    // Method to draw the sprite
     void drawSprite(float posX, float posY, int frameIndex);
 };
+
+#endif // SPRITE_HPP

@@ -17,9 +17,12 @@
 #include <GL/glx.h>
 #include <iostream>
 #include <vector>
+#include "Sprite.hpp"
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+#include <chrono>
 
 #define SPRITES 8
-
 class Image
 {
 public:
@@ -65,7 +68,10 @@ public:
 		unlink(ppmname);
 	}
 };
+
 Image img[1] = {"seamless_back.jpg"};
+
+
 
 class Texture
 {
@@ -183,8 +189,8 @@ public:
 		}
 	}
 } x11;
-void createSheet();
-void create_animation();
+
+
 void init_opengl(void);
 void check_mouse(XEvent *e);
 int check_keys(XEvent *e);
@@ -195,8 +201,10 @@ void get_sprite(void);
 //===========================================================================
 int main()
 {
+	
 	init_opengl();
 	int done = 0;
+
 	while (!done)
 	{
 		while (x11.getXPending())
@@ -208,6 +216,7 @@ int main()
 		}
 		physics();
 		render();
+		
 		x11.swapBuffers();
 	}
 	return 0;
@@ -278,29 +287,39 @@ void check_mouse(XEvent *e)
 	}
 }
 
+class AlphaImage {
+	public:
+	int width, height, channels;
+	unsigned char *data;
+
+	AlphaImage(const char* filename) {
+		data = stbi_load(filename, &width, &height, &channels, STBI_rgb_alpha);
+	}
+}sprite_img("run_dino.png");
+
+
+
+
 int check_keys(XEvent *e)
 {
+	
 	// Was there input from the keyboard?
 	if (e->type == KeyPress)
 	{
 		int key = XLookupKeysym(&e->xkey, 0);
+		
 		if (key == XK_Escape)
 		{
 			return 1;
 		}
 		//check if the right arrow keys were pressed
 		if(key == XK_Right) {
-			//character moves right
-			while(e->type != KeyRelease) {
-				create_animation();
-
-			}
-
+			
 		}
 	}
-
-
 	
+	
+
 	return 0;
 }
 
@@ -311,6 +330,7 @@ void physics()
 	g.tex.xc[1] += 0.0001;
 }
 
+Sprite sprite(sprite_img.width, sprite_img.height, 250, 174, sprite_img.data);
 void render()
 {
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -327,109 +347,31 @@ void render()
 	glVertex2i(g.xres, 0);
 	glEnd();
 	
-}
+	static int i = 0;
 
+	static auto start = std::chrono::steady_clock::now();
+	auto now = std::chrono::steady_clock::now();
 
-class SpriteSheet {
-public:
-    GLuint textureID;
-    int texWidth, texHeight;
-    int spriteWidth, spriteHeight;
+    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - start);
+	sprite.drawSprite(0, 0, i);
+    // Check if 100 milliseconds have passed
+    if (elapsed.count() >= 100) {
+        // Call your sprite function after 100 ms
+        i++;
+        if (i == 8) {
+            i = 0;  // Reset `i` after reaching 10
+        }
 
-    
-    SpriteSheet(int texWidth, int texHeight, int spriteWidth, int spriteHeight) {
-        this->texWidth = texWidth;
-        this->texHeight = texHeight;
-        this->spriteWidth = spriteWidth;
-        this->spriteHeight = spriteHeight;
+        // Update start time to the current time (now)
+        start = now;
     }
-
-    std::pair<float*,float*> drawSprite(float posX, float posY, int frameIndex) {
-        float verts[] = {
-            posX, posY,
-            posX + spriteWidth, posY,
-            posX + spriteWidth, posY + spriteHeight,
-            posX, posY + spriteHeight
-        };
-        const float tw = float(spriteWidth) / texWidth;
-        const float th = float(spriteHeight) / texHeight;
-        const int numPerRow = texWidth / spriteWidth;
-        const float tx = (frameIndex % numPerRow) * tw;
-        const float ty = (frameIndex / numPerRow + 1) * th;
-        float texVerts[] = {
-            tx, ty,
-            tx + tw, ty,
-            tx + tw, ty + th,
-            tx, ty + th
-        };
-		std::pair<float*, float*> arrays;
-		arrays.first = verts;
-		arrays.second = texVerts;
-		return arrays;
-        /*
-		Renders sprite
-		enable the proper arrays
-        glEnableClientState(GL_VERTEX_ARRAY);
-        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-
-        // Bind the texture and set pointers
-        glBindTexture(GL_TEXTURE_2D, textureID);
-        glVertexPointer(2, GL_FLOAT, 0, verts);
-        glTexCoordPointer(2, GL_FLOAT, 0, texVerts); 
-        glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-
-        // Disable the arrays
-        glDisableClientState(GL_VERTEX_ARRAY);
-        glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-		*/
-    }
-};
-
-Texture spriteTexture;
-float verts[8][8];
-float texVerts[8][8];
-void createSheet() {
-	Image sprite[1] = { "sprite.png" };
-	SpriteSheet sheet(sprite->width, sprite->height, 256, 256);
-	spriteTexture.backImage = &sprite[0];
-
-	glGenTextures(1, &spriteTexture.backTexture);
-	int w = sprite->width;
-	int h = sprite->height;
-	glBindTexture(GL_TEXTURE_2D, sheet.textureID);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexImage2D(GL_TEXTURE_2D, 0, 3, w, h, 0,
-				GL_RGB, GL_UNSIGNED_BYTE, sprite->data);
 	
-	sheet.textureID = spriteTexture.backTexture;
 
-	//get the coordinates from the spritesheet
-	for(int i = 0;i < 8;i++) {
-		std::pair<const float*, const float*> arrays = sheet.drawSprite(256*i, 0, i);
-		for(int j = 0;j < 8;j++) {
-			verts[i][j] = arrays.first[j];
-			texVerts[i][j] = arrays.second[j];
-		}
-	}
+        
 }
 
-void create_animation() {
-	//create the animation
-	for(int i = 0;i < SPRITES;i++) {
-		glEnableClientState(GL_VERTEX_ARRAY);
-        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
-        // Bind the texture and set pointers
-        glBindTexture(GL_TEXTURE_2D, spriteTexture.backTexture);
-        glVertexPointer(2, GL_FLOAT, 0, verts[i]);
-        glTexCoordPointer(2, GL_FLOAT, 0, texVerts[i]); 
-        glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
-        // Disable the arrays
-        glDisableClientState(GL_VERTEX_ARRAY);
-        glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-	}
-}
+
 
 
