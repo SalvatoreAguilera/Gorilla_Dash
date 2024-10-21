@@ -18,8 +18,9 @@
 #include <iostream>
 #include <vector>
 #include "Sprite.hpp"
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+#include "AlphaImage.hpp"
+//#define STB_IMAGE_IMPLEMENTATION
+//#include "stb_image.h"
 #include <chrono>
 
 #define SPRITES 8
@@ -70,8 +71,7 @@ public:
 };
 
 Image img[1] = {"seamless_back.jpg"};
-
-
+AlphaImage sprite_img("run_dino.png");
 
 class Texture
 {
@@ -287,18 +287,6 @@ void check_mouse(XEvent *e)
 	}
 }
 
-class AlphaImage {
-	public:
-	int width, height, channels;
-	unsigned char *data;
-
-	AlphaImage(const char* filename) {
-		data = stbi_load(filename, &width, &height, &channels, STBI_rgb_alpha);
-	}
-}sprite_img("run_dino.png");
-
-
-
 
 int check_keys(XEvent *e)
 {
@@ -331,6 +319,7 @@ void physics()
 }
 
 Sprite sprite(sprite_img.width, sprite_img.height, 250, 174, sprite_img.data);
+
 void render()
 {
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -354,15 +343,12 @@ void render()
 
     auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - start);
 	sprite.drawSprite(0, 0, i);
-    // Check if 100 milliseconds have passed
     if (elapsed.count() >= 100) {
-        // Call your sprite function after 100 ms
         i++;
         if (i == 8) {
-            i = 0;  // Reset `i` after reaching 10
+            i = 0; 
         }
 
-        // Update start time to the current time (now)
         start = now;
     }
 	

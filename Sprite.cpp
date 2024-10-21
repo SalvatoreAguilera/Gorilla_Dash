@@ -1,4 +1,4 @@
-#include "Sprite.hpp"
+/*#include "Sprite.hpp"
 
 Sprite::Sprite(int texWidth, int texHeight, int spriteWidth, int spriteHeight, unsigned char *data) {
     this->texWidth = texWidth;
@@ -49,3 +49,4 @@ void Sprite::drawSprite(float posX, float posY, int frameIndex) {
         glDisableClientState(GL_VERTEX_ARRAY);
         glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 }
+*/

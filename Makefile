@@ -1,5 +1,5 @@
-background: background.cpp Sprite.cpp 
-	g++ background.cpp Sprite.cpp -Wall -lX11 -lGL -lGLU -lm
+background: background.cpp sgutierrez2.cpp 
+	g++ background.cpp sgutierrez2.cpp -Wall -lX11 -lGL -lGLU -lm
 
 clean:
 	rm -f background 
