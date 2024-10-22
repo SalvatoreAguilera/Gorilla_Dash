@@ -54,4 +54,11 @@ void render_title_screen()
     drawText(title_x, title_y, "Gorilla Dash");
     drawText(prompt_x, prompt_y, "Press space to start");
 }
-
+void check_title_keys(XEvent *e) {
+    if (title_screen && e->type == KeyPress) {
+        int key = XLookupKeysym(&e->xkey, 0);
+        if (key == XK_space) {
+            title_screen = false;
+        }
+    }
+}
