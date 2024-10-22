@@ -19,6 +19,7 @@
 #include <vector>
 #include "Sprite.hpp"
 #include "AlphaImage.hpp"
+#include "feature.h"
 //#define STB_IMAGE_IMPLEMENTATION
 //#include "stb_image.h"
 #include <chrono>
