@@ -22,7 +22,7 @@ void drawText(int x, int y, const char *text)
     if (!initialized) {
         initialized = 1;
         Display *dpy = glXGetCurrentDisplay();
-        Font font = XLoadFont(dpy, "fixed");
+        Font font = XLoadFont(dpy, "9x15bold");
         fontOffset = glGenLists(256);
         glXUseXFont(font, 0, 256, fontOffset);
     }
