@@ -1,15 +1,11 @@
-#ifndef CHANGES_H
-#define CHANGES_H
+#ifndef FEATURE_H
+#define FEATURE_H
 
-#include <string>
+#include <X11/Xlib.h>
 
 // title screen
-extern bool show_title_screen;
-extern std::string game_name;
-extern std::string start_message;
+extern bool title_screen;
 
-void init_title_screen();
 void render_title_screen();
-bool handle_title_screen_input(int key);
-
-#endif 
+void check_title_keys(XEvent *e);
+#endif
