@@ -306,9 +306,7 @@ int check_keys(XEvent *e)
 			
 		}
 	}
-	
-	
-
+	check_title_keys(e);
 	return 0;
 }
 
@@ -324,6 +322,10 @@ Sprite sprite(sprite_img.width, sprite_img.height, 250, 174, sprite_img.data);
 void render()
 {
 	glClear(GL_COLOR_BUFFER_BIT);
+	if (title_screen) {
+        render_title_screen();
+        return;    
+	}
 	glColor3f(1.0, 1.0, 1.0);
 	glBindTexture(GL_TEXTURE_2D, g.tex.backTexture);
 	glBegin(GL_QUADS);
