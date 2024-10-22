@@ -2,44 +2,56 @@
 // Modified: 10/8/24
 // Feature for game
 #include "feature.h"
-#include <GL/glut.h>
-#include <GL/freeglut.h>
+#include <GL/glx.h>
+#include <X11/keysym.h>
+#include <cstring>
 
-// title screen variables
-bool show_title_screen = true;
-std::string game_name = "Gorilla Dash";
-std::string start_message = "Press Space to Start";
+// Access the Global class 
+extern class Global {
+    public:
+        int xres, yres;
+} g;
 
-// Implement the new functions
-void init_title_screen() {
-    // To be added
+bool title_screen = true;
+
+void drawText(int x, int y, const char *text)
+{
+    static int initialized = 0;
+    static GLuint fontOffset;
+
+    if (!initialized) {
+        initialized = 1;
+        Display *dpy = glXGetCurrentDisplay();
+        Font font = XLoadFont(dpy, "fixed");
+        fontOffset = glGenLists(256);
+        glXUseXFont(font, 0, 256, fontOffset);
+    }
+
+    glRasterPos2i(x, y);
+
+    glPushAttrib(GL_LIST_BIT);
+    glListBase(fontOffset);
+    glCallLists(strlen(text), GL_UNSIGNED_BYTE, (GLubyte *)text);
+    glPopAttrib();
 }
 
-void render_title_screen() {
+void render_title_screen()
+{
+    // Clear the screen with a black background
+    glClearColor(0.0, 0.0, 0.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
 
     // Set text color to white
-    glColor3f(1.0f, 1.0f, 1.0f);
+    glColor3f(1.0, 1.0, 1.0);
 
-    // Render game name
-    glRasterPos2f(640 / 2 - 100, 480 / 2 + 50);  // Assuming 640x480 resolution
-    for (char c : game_name) {
-        glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, c);
-    }
+    // Calculate positions for centered text
+    int title_x = g.xres / 2 - 50;
+    int title_y = g.yres / 2 + 20;
+    int prompt_x = g.xres / 2 - 70;
+    int prompt_y = g.yres / 2 - 20;
 
-    // Render start message
-    glRasterPos2f(640 / 2 - 80, 480 / 2 - 50);
-    for (char c : start_message) {
-        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, c);
-    }
+    // Render the title and prompt text
+    drawText(title_x, title_y, "Gorilla Dash");
+    drawText(prompt_x, prompt_y, "Press space to start");
 }
 
-bool handle_title_screen_input(int key) {
-    if (show_title_screen && key == ' ') {
-        show_title_screen = false;
-        return true;
-    }
-    return false;
-}
