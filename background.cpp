@@ -19,11 +19,12 @@
 #include <vector>
 #include "Sprite.hpp"
 #include "AlphaImage.hpp"
-//#define STB_IMAGE_IMPLEMENTATION
-//#include "stb_image.h"
-#include <chrono>
+#include "handler_sprite.hpp"
 
 #define SPRITES 8
+
+bool running = true; //flag to handle sprite running or jumping
+
 class Image
 {
 public:
@@ -71,7 +72,7 @@ public:
 };
 
 Image img[1] = {"seamless_back.jpg"};
-AlphaImage sprite_img("run_dino.png");
+AlphaImage sprite_img[2] = {"jump_dino_2.png", "run_dino.png"};
 
 class Texture
 {
@@ -197,6 +198,8 @@ int check_keys(XEvent *e);
 void physics(void);
 void render(void);
 void get_sprite(void);
+void handle_running(void);
+void handle_jumping(void);
 //===========================================================================
 //===========================================================================
 int main()
@@ -301,8 +304,8 @@ int check_keys(XEvent *e)
 			return 1;
 		}
 		//check if the right arrow keys were pressed
-		if(key == XK_Right) {
-			
+		if(key == XK_Up) {
+			running = false;
 		}
 	}
 	
@@ -318,7 +321,8 @@ void physics()
 	g.tex.xc[1] += 0.0001;
 }
 
-Sprite sprite(sprite_img.width, sprite_img.height, 250, 174, sprite_img.data);
+Sprite sprite_run(sprite_img[1].width, sprite_img[1].height, 250, 174, sprite_img[1].data);
+Sprite sprite_jump(sprite_img[0].width, sprite_img[0].height, 250, 174, sprite_img[0].data);
 
 void render()
 {
@@ -335,29 +339,58 @@ void render()
 	glTexCoord2f(g.tex.xc[1], g.tex.yc[1]);
 	glVertex2i(g.xres, 0);
 	glEnd();
+
+   	handle_running(running, sprite_run);
+	handle_jumping(running, sprite_jump);
 	
-	static int i = 0;
-
-	static auto start = std::chrono::steady_clock::now();
-	auto now = std::chrono::steady_clock::now();
-
-    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - start);
-	sprite.drawSprite(0, 0, i);
-    if (elapsed.count() >= 100) {
-        i++;
-        if (i == 8) {
-            i = 0; 
-        }
-
-        start = now;
-    }
-	
-
-        
 }
 
 
 
 
+//if running then jump allowed -- make var for running
+// two functions handle_running and handle_jumping
+// when jump click is pressed, set running to false and call handle_jumping
+// when jump click is released, set running to true and call handle_running
+/*
+void handle_running() {
+	
+	static int i = 0;
+	static auto start = std::chrono::steady_clock::now();
+	auto now = std::chrono::steady_clock::now();
+	if(running == false) {
+		i = 0;
+		return;
+	}
+	auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - start);
+	sprite_run.drawSprite(0, 0, i);
+	if (elapsed.count() >= 100) {
+		i++;
+		if (i == 8) {
+			i = 0; 
+		}
 
+		start = now;
+	}
+}
 
+void handle_jumping() {
+	if(running == true) {
+		return;
+	}
+
+	static int i = 0;
+	static auto start = std::chrono::steady_clock::now();
+	auto now = std::chrono::steady_clock::now();
+	auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - start);
+	sprite_jump.drawSprite(0, i*5, i);
+	if (elapsed.count() >= 40) {
+		i++;
+		if (i == 12) {
+			i = 0;
+			running = true; 
+		}
+
+		start = now;
+	}
+}*/
