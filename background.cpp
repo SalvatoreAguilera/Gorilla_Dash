@@ -20,6 +20,7 @@
 #include "Sprite.hpp"
 #include "AlphaImage.hpp"
 #include "feature.h"
+#include "platforms.h"
 //#define STB_IMAGE_IMPLEMENTATION
 //#include "stb_image.h"
 #include <chrono>
@@ -338,6 +339,11 @@ void render()
 	glTexCoord2f(g.tex.xc[1], g.tex.yc[1]);
 	glVertex2i(g.xres, 0);
 	glEnd();
+
+	glPushMatrix();
+	render_platforms();
+	glPopMatrix();
+	glColor3f(1.0, 1.0, 1.0);
 	
 	static int i = 0;
 
