@@ -341,7 +341,7 @@ int check_keys(XEvent *e)
 		}
 	}
 	
-	//check_title_keys(e);
+	check_title_keys(e);
 
 	return 0;
 }
@@ -355,7 +355,6 @@ void physics()
 	//g.tex.xc[0] += 0.00000001;
 	//g.tex.xc[1] += 0.00000001;
 	static bool b = true;
-	static int i = 0;
 	if (b)
 	{
 		init_character(char_coords, sprite_run, sprite_block);
@@ -374,10 +373,10 @@ void render()
 {
 	
 	glClear(GL_COLOR_BUFFER_BIT);
-	/*if (title_screen) {
+	if (title_screen) {
         render_title_screen();
         return;    
-	}*/
+	}
 	glColor3f(1.0, 1.0, 1.0);
 	glBindTexture(GL_TEXTURE_2D, g.tex.backTexture);
 	glBegin(GL_QUADS);
