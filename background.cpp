@@ -341,7 +341,7 @@ int check_keys(XEvent *e)
 		}
 	}
 	
-	check_title_keys(e);
+	//check_title_keys(e);
 
 	return 0;
 }
@@ -363,7 +363,7 @@ void physics()
 	}
 	tile_block(sprite_block, block_coords);
 	handle_gravity(char_coords, block_coords, gravity, jump);
-  handle_running(running, direction, idle, sprite_run, char_coords, block_coords);
+  	handle_running(running, direction, idle, sprite_run, char_coords, block_coords);
 	handle_jumping(jump, idle, sprite_jump, char_coords, block_coords);
 	handle_idle(idle, sprite_idle, char_coords);
 }
@@ -374,10 +374,10 @@ void render()
 {
 	
 	glClear(GL_COLOR_BUFFER_BIT);
-	if (title_screen) {
+	/*if (title_screen) {
         render_title_screen();
         return;    
-	}
+	}*/
 	glColor3f(1.0, 1.0, 1.0);
 	glBindTexture(GL_TEXTURE_2D, g.tex.backTexture);
 	glBegin(GL_QUADS);
