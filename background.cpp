@@ -20,7 +20,9 @@
 #include "Sprite.hpp"
 #include "AlphaImage.hpp"
 #include "handler_sprite.hpp"
-
+#include "feature.h"
+#include "platforms.h"
+#include <chrono>
 #define SPRITES 8
 
 //flags to handle different animations
@@ -82,7 +84,6 @@ public:
 Image img[1] = {"./images/BG.png"};
 AlphaImage sprite_img[4] = {"./images/jump_dino_2.png", "./images/run_dino.png", "./images/tileblock.png", "./images/idle_dino.png"};
 
-
 class Texture
 {
 public:
@@ -116,6 +117,7 @@ public:
 		GLint att[] = {GLX_RGBA, GLX_DEPTH_SIZE, 24, GLX_DOUBLEBUFFER, None};
 		// GLint att[] = { GLX_RGBA, GLX_DEPTH_SIZE, 24, None };
 		setup_screen_res(1000, 750);
+
 		dpy = XOpenDisplay(NULL);
 		if (dpy == NULL)
 		{
@@ -212,6 +214,7 @@ void get_sprite(void);
 //===========================================================================
 int main()
 {
+	
 	init_opengl();
 	int done = 0;
 
@@ -226,7 +229,6 @@ int main()
 		}
 		render();
 		physics();
-		
 		
 		x11.swapBuffers();
 
@@ -312,6 +314,7 @@ int check_keys(XEvent *e)
 		{
 			return 1;
 		}
+    
 		//check if the up arrow keys were pressed
 		if(key == XK_Up && !gravity) {
 			jump = true;
@@ -338,7 +341,7 @@ int check_keys(XEvent *e)
 		}
 	}
 	
-	
+	check_title_keys(e);
 
 	return 0;
 }
@@ -360,16 +363,21 @@ void physics()
 	}
 	tile_block(sprite_block, block_coords);
 	handle_gravity(char_coords, block_coords, gravity, jump);
-   	handle_running(running, direction, idle, sprite_run, char_coords, block_coords);
+  handle_running(running, direction, idle, sprite_run, char_coords, block_coords);
 	handle_jumping(jump, idle, sprite_jump, char_coords, block_coords);
 	handle_idle(idle, sprite_idle, char_coords);
 }
+
 
 
 void render()
 {
 	
 	glClear(GL_COLOR_BUFFER_BIT);
+	if (title_screen) {
+        render_title_screen();
+        return;    
+	}
 	glColor3f(1.0, 1.0, 1.0);
 	glBindTexture(GL_TEXTURE_2D, g.tex.backTexture);
 	glBegin(GL_QUADS);
@@ -383,4 +391,10 @@ void render()
 	glVertex2i(g.xres, 0);
 	glEnd();
 	
+	/*glPushMatrix();
+	render_platforms();
+	glPopMatrix();
+	glColor3f(1.0, 1.0, 1.0);
+	
+	  */     
 }

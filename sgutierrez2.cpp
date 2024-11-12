@@ -15,6 +15,7 @@
     with the character. Lastly loaded all spritesheets and set them up to be ready to read in.
     Also added flags in the main file for handling different events with different keys and created arrays to 
     save coordinates of all images*/
+
 Sprite::Sprite(int texWidth, int texHeight, int spriteWidth, int spriteHeight, unsigned char *data) {
     this->texWidth = texWidth;
     this->texHeight = texHeight;
@@ -43,13 +44,13 @@ void Sprite::drawSprite(float posX, float posY, int frameIndex) {
         const int numPerRow = texWidth / spriteWidth;
         const float tx = (frameIndex % numPerRow) * tw;
         const float ty = (frameIndex / numPerRow+1) * th;
-    const float texVerts[] = {
+        const float texVerts[] = {
             tx, ty + th,        // top-left corner
             tx + tw, ty + th,   // top-right corner
             tx + tw, ty,        // bottom-right corner
             tx, ty              // bottom-left corner
         };
-        
+
         // Enable the proper arrays
         glEnableClientState(GL_VERTEX_ARRAY);
         glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -69,8 +70,6 @@ void Sprite::drawSprite(float posX, float posY, int frameIndex) {
 AlphaImage::AlphaImage(const char* filename) {
     data = stbi_load(filename, &width, &height, &channels, STBI_rgb_alpha);
 }
-
-
 
 void handle_running(bool& running, int& direction, bool& idle, Sprite& sprite_run, std::vector<int>& character_coords, std::vector<std::vector<int>>& block_coords) {
 	static int i = 0;

@@ -3,6 +3,7 @@
 
 #include <GL/gl.h>
 #include <vector> 
+
 class Sprite {
 public:
     GLuint textureID;
