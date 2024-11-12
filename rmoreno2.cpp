@@ -29,7 +29,6 @@ void drawText(int x, int y, const char *text, bool large = false)
     if (!initialized) {
         initialized = 1;
         Display *dpy = glXGetCurrentDisplay();
-        // Load two different font sizes
         Font font = XLoadFont(dpy, "fixed");
         Font largeFont = XLoadFont(dpy, "fixed");
         fontOffset = glGenLists(256);
