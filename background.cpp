@@ -19,13 +19,22 @@
 #include <vector>
 #include "Sprite.hpp"
 #include "AlphaImage.hpp"
+#include "handler_sprite.hpp"
 #include "feature.h"
 #include "platforms.h"
-//#define STB_IMAGE_IMPLEMENTATION
-//#include "stb_image.h"
 #include <chrono>
-
 #define SPRITES 8
+
+//flags to handle different animations
+bool running = false; 
+bool jump = false;
+bool idle = true;
+bool gravity = false;
+int direction = 1;
+
+std::vector<int> char_coords;
+std::vector<std::vector<int>> block_coords;
+
 class Image
 {
 public:
@@ -72,8 +81,8 @@ public:
 	}
 };
 
-Image img[1] = {"seamless_back.jpg"};
-AlphaImage sprite_img("run_dino.png");
+Image img[1] = {"./images/BG.png"};
+AlphaImage sprite_img[4] = {"./images/jump_dino_2.png", "./images/run_dino.png", "./images/tileblock.png", "./images/idle_dino.png"};
 
 class Texture
 {
@@ -91,7 +100,7 @@ public:
 	Texture tex;
 	Global()
 	{
-		xres = 640, yres = 480;
+		xres = 1000, yres = 750;
 	}
 } g;
 
@@ -107,7 +116,8 @@ public:
 	{
 		GLint att[] = {GLX_RGBA, GLX_DEPTH_SIZE, 24, GLX_DOUBLEBUFFER, None};
 		// GLint att[] = { GLX_RGBA, GLX_DEPTH_SIZE, 24, None };
-		setup_screen_res(640, 480);
+		setup_screen_res(1000, 750);
+
 		dpy = XOpenDisplay(NULL);
 		if (dpy == NULL)
 		{
@@ -199,6 +209,7 @@ int check_keys(XEvent *e);
 void physics(void);
 void render(void);
 void get_sprite(void);
+
 //===========================================================================
 //===========================================================================
 int main()
@@ -216,10 +227,11 @@ int main()
 			check_mouse(&e);
 			done = check_keys(&e);
 		}
-		physics();
 		render();
+		physics();
 		
 		x11.swapBuffers();
+
 	}
 	return 0;
 }
@@ -254,7 +266,7 @@ void init_opengl(void)
 	glTexImage2D(GL_TEXTURE_2D, 0, 3, w, h, 0,
 				 GL_RGB, GL_UNSIGNED_BYTE, g.tex.backImage->data);
 	g.tex.xc[0] = 0.0;
-	g.tex.xc[1] = 0.25;
+	g.tex.xc[1] = 1.0;
 	g.tex.yc[0] = 0.0;
 	g.tex.yc[1] = 1.0;
 }
@@ -302,26 +314,65 @@ int check_keys(XEvent *e)
 		{
 			return 1;
 		}
-		//check if the right arrow keys were pressed
-		if(key == XK_Right) {
-			
+    
+		//check if the up arrow keys were pressed
+		if(key == XK_Up && !gravity) {
+			jump = true;
+			running = false;
+		}
+
+		//check if right arrow key was pressed
+		if(key == XK_Right && !gravity) {
+			running = true;
+			direction = 1;
+			std::cout << "right" << std::endl;
+		}
+
+		if(key == XK_Left && !gravity) {
+			running = true;
+			direction = -1;
 		}
 	}
+	else if(e->type == KeyRelease) {
+		int key = XLookupKeysym(&e->xkey, 0);
+		if(key == XK_Right || key == XK_Left) {
+			running = false;
+			idle = true;
+		}
+	}
+	
 	check_title_keys(e);
+
 	return 0;
 }
-
+Sprite sprite_jump(sprite_img[0].width, sprite_img[0].height, 250, 174, sprite_img[0].data);
+Sprite sprite_run(sprite_img[1].width, sprite_img[1].height, 250, 174, sprite_img[1].data);
+Sprite sprite_block(sprite_img[2].width, sprite_img[2].height, 100, 100, sprite_img[2].data);
+Sprite sprite_idle(sprite_img[3].width, sprite_img[3].height, 250, 174, sprite_img[3].data);
 void physics()
 {
 	// move the background
-	g.tex.xc[0] += 0.0001;
-	g.tex.xc[1] += 0.0001;
+	//g.tex.xc[0] += 0.00000001;
+	//g.tex.xc[1] += 0.00000001;
+	static bool b = true;
+	static int i = 0;
+	if (b)
+	{
+		init_character(char_coords, sprite_run, sprite_block);
+		b = false;
+	}
+	tile_block(sprite_block, block_coords);
+	handle_gravity(char_coords, block_coords, gravity, jump);
+  handle_running(running, direction, idle, sprite_run, char_coords, block_coords);
+	handle_jumping(jump, idle, sprite_jump, char_coords, block_coords);
+	handle_idle(idle, sprite_idle, char_coords);
 }
 
-Sprite sprite(sprite_img.width, sprite_img.height, 250, 174, sprite_img.data);
+
 
 void render()
 {
+	
 	glClear(GL_COLOR_BUFFER_BIT);
 	if (title_screen) {
         render_title_screen();
@@ -339,24 +390,11 @@ void render()
 	glTexCoord2f(g.tex.xc[1], g.tex.yc[1]);
 	glVertex2i(g.xres, 0);
 	glEnd();
-
-	glPushMatrix();
+	
+	/*glPushMatrix();
 	render_platforms();
 	glPopMatrix();
 	glColor3f(1.0, 1.0, 1.0);
 	
-	static int i = 0;
-
-	static auto start = std::chrono::steady_clock::now();
-	auto now = std::chrono::steady_clock::now();
-
-    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - start);
-	sprite.drawSprite(0, 0, i);
-    if (elapsed.count() >= 100) {
-        i++;
-        if (i == 8) {
-            i = 0; 
-        }
-        start = now;
-    }        
+	  */     
 }

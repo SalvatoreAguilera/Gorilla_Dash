@@ -2,6 +2,7 @@
 #define SPRITE_HPP
 
 #include <GL/gl.h>
+#include <vector> 
 
 class Sprite {
 public:
