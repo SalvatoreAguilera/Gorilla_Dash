@@ -8,4 +8,7 @@ extern bool title_screen;
 
 void render_title_screen();
 void check_title_keys(XEvent *e);
+
+extern int current_health;
+extern int max_health;
 #endif
