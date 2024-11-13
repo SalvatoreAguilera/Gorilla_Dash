@@ -389,7 +389,8 @@ void render()
 	glTexCoord2f(g.tex.xc[1], g.tex.yc[1]);
 	glVertex2i(g.xres, 0);
 	glEnd();
-	
+
+	render_health_bar();
 	/*glPushMatrix();
 	render_platforms();
 	glPopMatrix();
