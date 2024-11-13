@@ -130,7 +130,7 @@ void render_title_screen()
     glColor3f(0.8f, 0.8f, 1.0f);
     drawText(prompt_x, base_prompt_y + pulse_offset, prompt);
 
-  
+    // Version 1 (just for fun)
     glColor3f(0.5f, 0.5f, 0.5f);
     drawText(10, 10, "v1.0");
 
