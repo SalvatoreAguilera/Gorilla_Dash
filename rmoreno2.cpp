@@ -174,7 +174,6 @@ void render_title_screen()
 
 void render_health_bar()
 {
-    // Position settings
     int x = 10;
     int y = g.yres - 40; 
 
@@ -183,11 +182,9 @@ void render_health_bar()
     const int bar_height = 25;
     const int num_segments = 50; 
 
-    // Calculate filled and empty segments
     int filled_segments = (current_health * num_segments) / max_health;
     int empty_segments = num_segments - filled_segments;
 
-    // Construct health bar string
     char health_bar_text[400];
     strcpy(health_bar_text, "Health Bar: [");
     for(int i = 0; i < filled_segments; i++) strcat(health_bar_text, "|");
@@ -195,22 +192,31 @@ void render_health_bar()
     strcat(health_bar_text, "] ");
     sprintf(health_bar_text + strlen(health_bar_text), "%d/%d", current_health, max_health);
 
-    // Draw Health Bar Text
     glColor3f(1.0f, 1.0f, 1.0f);
     drawText(x, y + bar_height + 10, health_bar_text);
 
-    // Draw Health Bar Background
     glColor3f(0.5f, 0.0f, 0.0f); 
     drawBox(x, y, bar_width, bar_height, true);
 
-    // Draw Health Bar Filled Portion
     glColor3f(0.8f, 0.0f, 0.0f); 
     drawBox(x, y, (bar_width * filled_segments) / num_segments, bar_height, true);
 
-    // Draw Health Bar Border
     glColor3f(1.0f, 1.0f, 1.0f); 
     drawBox(x, y, bar_width, bar_height, false);
 }
+
+void take_damage(int damage) {
+    current_health -= damage;
+    if (current_health < 0)
+        current_health = 0;
+}
+
+void heal(int amount) {
+    current_health += amount;
+    if (current_health > max_health)
+        current_health = max_health;
+}
+
 
 void check_title_keys(XEvent *e) {
     if (title_screen && e->type == KeyPress) {
