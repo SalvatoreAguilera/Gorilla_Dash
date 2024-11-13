@@ -10,6 +10,7 @@ extern bool paused;
 
 void render_title_screen();
 void check_title_keys(XEvent *e);
+void render_health_bar();
 
 void take_damage(int damage);
 void heal(int amount);
