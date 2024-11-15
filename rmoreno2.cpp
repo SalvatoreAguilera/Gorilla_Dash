@@ -13,12 +13,13 @@ extern class Global {
 } g;
 
 bool title_screen = true;
+bool paused = false;
 static auto start_time = std::chrono::steady_clock::now();
 
 float pulse_scale = 1.0f;
 float title_y_offset = 0.0f;
 
-int current_health = 75;
+int current_health = 100;
 int max_health = 100;
 
 void drawText(int x, int y, const char *text, bool large = false)
