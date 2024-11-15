@@ -1,12 +1,3 @@
-//
-// program: background.cpp
-// author:  Gordon Griesel
-// date:    2017 - 2018
-//
-// The position of the background QUAD does not change.
-// Just the texture coordinates change.
-// In this example, only the x coordinates change.
-//
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
