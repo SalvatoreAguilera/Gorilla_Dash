@@ -205,6 +205,11 @@ void render_health_bar()
     drawBox(x, y, bar_width, bar_height, false);
 }
 
+//void render_pause_screen()
+//{
+//    glColor4f(0.0f, 0.0f, 0.0f, 0.5f);
+//}
+
 void take_damage(int damage) {
     current_health -= damage;
     if (current_health < 0)
