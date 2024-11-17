@@ -89,7 +89,6 @@ void handle_running(bool& running, int& direction, bool& idle, Sprite& sprite_ru
     if(collision_sprite(character_coords, moveX, moveY, block_coords)) {
         running = false;
         idle = true;
-        std::cout << "Collision detected" << std::endl;
         return;
     } else {
         character_coords[0] += moveX;
@@ -133,7 +132,8 @@ bool collision_sprite(std::vector<int>& c, int& moveX, int& moveY, std::vector<s
     return false;
 }
 
-void handle_jumping(bool& jump, bool& idle, Sprite& sprite_jump, std::vector<int>& character_coords, std::vector<std::vector<int>>& block_coords) {
+void handle_jumping(bool& jump, bool& idle, Sprite& sprite_jump, std::vector<int>& character_coords,
+ std::vector<std::vector<int>>& block_coords, int& direction) {
     if(jump == false) {
 		return;
 	}
@@ -146,7 +146,7 @@ void handle_jumping(bool& jump, bool& idle, Sprite& sprite_jump, std::vector<int
 	auto now = std::chrono::steady_clock::now();
 	auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - start);
     static int jumpY = 60;
-    int jumpX = 60;
+    int jumpX = 60*direction;
     static bool isAscending = true;
     int temp = jumpY*-1;
 
@@ -263,7 +263,7 @@ void init_character(std::vector<int>& character_coords, Sprite& sprite, Sprite& 
 
 void handle_gravity(std::vector<int>& character_coords, std::vector<std::vector<int>>& block_coords, bool& gravity, bool& jump) {
     int moveX = 0;
-    int moveY = -1;
+    int moveY = -2;
     if(jump || collision_sprite(character_coords, moveX, moveY, block_coords)) {
         gravity = false;
         return;

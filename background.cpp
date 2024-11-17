@@ -316,16 +316,16 @@ int check_keys(XEvent *e)
 		}
     
 		//check if the up arrow keys were pressed
-		if(key == XK_Up && !gravity) {
+		if(key == XK_Up) {
 			jump = true;
 			running = false;
+			
 		}
 
 		//check if right arrow key was pressed
 		if(key == XK_Right && !gravity) {
 			running = true;
 			direction = 1;
-			std::cout << "right" << std::endl;
 		}
 
 		if(key == XK_Left && !gravity) {
@@ -333,6 +333,7 @@ int check_keys(XEvent *e)
 			direction = -1;
 		}
 	}
+
 	else if(e->type == KeyRelease) {
 		int key = XLookupKeysym(&e->xkey, 0);
 		if(key == XK_Right || key == XK_Left) {
@@ -352,10 +353,9 @@ Sprite sprite_idle(sprite_img[3].width, sprite_img[3].height, 250, 174, sprite_i
 void physics()
 {
 	// move the background
-	//g.tex.xc[0] += 0.00000001;
-	//g.tex.xc[1] += 0.00000001;
+	g.tex.xc[0] += 0.0001;
+	g.tex.xc[1] += 0.0001;
 	static bool b = true;
-	static int i = 0;
 	if (b)
 	{
 		init_character(char_coords, sprite_run, sprite_block);
@@ -363,8 +363,8 @@ void physics()
 	}
 	tile_block(sprite_block, block_coords);
 	handle_gravity(char_coords, block_coords, gravity, jump);
-  handle_running(running, direction, idle, sprite_run, char_coords, block_coords);
-	handle_jumping(jump, idle, sprite_jump, char_coords, block_coords);
+  	handle_running(running, direction, idle, sprite_run, char_coords, block_coords);
+	handle_jumping(jump, idle, sprite_jump, char_coords, block_coords, direction);
 	handle_idle(idle, sprite_idle, char_coords);
 }
 
@@ -374,10 +374,10 @@ void render()
 {
 	
 	glClear(GL_COLOR_BUFFER_BIT);
-	if (title_screen) {
-        render_title_screen();
-        return;    
-	}
+	//if (title_screen) {
+        //render_title_screen();
+        //return;    
+	//}
 	glColor3f(1.0, 1.0, 1.0);
 	glBindTexture(GL_TEXTURE_2D, g.tex.backTexture);
 	glBegin(GL_QUADS);
