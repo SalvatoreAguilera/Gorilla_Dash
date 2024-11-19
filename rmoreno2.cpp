@@ -206,10 +206,22 @@ void render_health_bar()
     drawBox(x, y, bar_width, bar_height, false);
 }
 
-//void render_pause_screen()
-//{
-//    glColor4f(0.0f, 0.0f, 0.0f, 0.5f);
-//}
+void render_pause_screen()
+{
+    glColor4f(0.0f, 0.0f, 0.0f, 0.5f);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBegin(GL_QUADS);
+        glVertex2i(0, 0);
+        glVertex2i(g.xres, 0);
+        glVertex2i(g.xres, g.yres);
+        glVertex2i(0, g.yres);
+    glEnd();
+    glDisable(GL_BLEND);
+
+    const char* pause_text = "Game Paused";
+    const char* resume_text = "Press 'P' to resume";
+}
 
 void take_damage(int damage) {
     current_health -= damage;
