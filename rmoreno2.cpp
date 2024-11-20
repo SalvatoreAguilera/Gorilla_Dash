@@ -208,7 +208,8 @@ void render_health_bar()
 
 void render_pause_screen()
 {
-    glColor4f(0.0f, 0.0f, 0.0f, 0.5f);
+    // Semi-transparent overlay
+    glColor4f(0.0f, 0.0f, 0.0f, 0.5f); 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glBegin(GL_QUADS);
@@ -219,8 +220,25 @@ void render_pause_screen()
     glEnd();
     glDisable(GL_BLEND);
 
+    
     const char* pause_text = "Game Paused";
-    const char* resume_text = "Press 'P' to resume";
+    const char* resume_text = "Press 'P' to Resume";
+    
+    // Calculate text positions (centered)
+    int text_width = strlen(pause_text) * 20; 
+    int resume_width = strlen(resume_text) * 15; 
+    int text_x = (g.xres - text_width) / 2;
+    int text_y = g.yres / 2 + 20;
+    int resume_x = (g.xres - resume_width) / 2;
+    int resume_y = g.yres / 2 - 20;
+
+    // Draw Pause 
+    glColor3f(1.0f, 1.0f, 1.0f); 
+    drawText(text_x, text_y, pause_text, true);
+
+    // Draw Resume 
+    glColor3f(1.0f, 1.0f, 1.0f); 
+    drawText(resume_x, resume_y, resume_text, false);
 }
 
 void take_damage(int damage) {
@@ -241,6 +259,15 @@ void check_title_keys(XEvent *e) {
         int key = XLookupKeysym(&e->xkey, 0);
         if (key == XK_space) {
             title_screen = false;
+        }
+    }
+}
+
+void check_pause_keys(XEvent *e) {
+    if (!title_screen && e->type == KeyPress) {
+        int key = XLookupKeysym(&e->xkey, 0);
+        if (key == XK_p || key == XK_P) { 
+            paused = !paused; 
         }
     }
 }
