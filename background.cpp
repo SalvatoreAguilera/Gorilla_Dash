@@ -295,46 +295,53 @@ void check_mouse(XEvent *e)
 
 int check_keys(XEvent *e)
 {
-	
-	// Was there input from the keyboard?
-	if (e->type == KeyPress)
-	{
-		int key = XLookupKeysym(&e->xkey, 0);
-		
-		if (key == XK_Escape)
-		{
-			return 1;
-		}
     
-		//check if the up arrow keys were pressed
-		if(key == XK_Up && !gravity) {
-			jump = true;
-			running = false;
-		}
+    // Was there input from the keyboard?
+    if (e->type == KeyPress)
+    {
+        int key = XLookupKeysym(&e->xkey, 0);
+        
+        if (key == XK_Escape)
+        {
+            return 1;
+        }
+    
+        // Handle pause functionality
+        if (key == XK_p || key == XK_P) {
+            paused = !paused;
+            return 0;
+        }
+    
+        //check if the up arrow keys were pressed
+        if(key == XK_Up && !gravity && !paused) {
+            jump = true;
+            running = false;
+        }
 
-		//check if right arrow key was pressed
-		if(key == XK_Right && !gravity) {
-			running = true;
-			direction = 1;
-			std::cout << "right" << std::endl;
-		}
+        //check if right arrow key was pressed
+        if(key == XK_Right && !gravity && !paused) {
+            running = true;
+            direction = 1;
+            std::cout << "right" << std::endl;
+        }
 
-		if(key == XK_Left && !gravity) {
-			running = true;
-			direction = -1;
-		}
-	}
-	else if(e->type == KeyRelease) {
-		int key = XLookupKeysym(&e->xkey, 0);
-		if(key == XK_Right || key == XK_Left) {
-			running = false;
-			idle = true;
-		}
-	}
-	
-	check_title_keys(e);
+        if(key == XK_Left && !gravity && !paused) {
+            running = true;
+            direction = -1;
+        }
+    }
+    else if(e->type == KeyRelease) {
+        int key = XLookupKeysym(&e->xkey, 0);
+        if(key == XK_Right || key == XK_Left) {
+            running = false;
+            idle = true;
+        }
+    }
+    
+    check_title_keys(e);
+    check_pause_keys(e); 
 
-	return 0;
+    return 0;
 }
 Sprite sprite_jump(sprite_img[0].width, sprite_img[0].height, 250, 174, sprite_img[0].data);
 Sprite sprite_run(sprite_img[1].width, sprite_img[1].height, 250, 174, sprite_img[1].data);
@@ -382,6 +389,9 @@ void render()
 	glEnd();
 
 	render_health_bar();
+	if (paused) {
+       	render_pause_screen();
+    	}
 	/*glPushMatrix();
 	render_platforms();
 	glPopMatrix();
