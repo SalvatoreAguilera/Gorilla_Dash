@@ -26,14 +26,18 @@
 #define SPRITES 8
 
 //flags to handle different animations
-bool running = false; 
-bool jump = false;
-bool idle = true;
-bool gravity = false;
-int direction = 1;
+struct character {
+	bool running = false; 
+	bool jump = false;
+	bool idle = true;
+	bool gravity = false;
+	int direction = 1;
+};
+character dino1;
 
 std::vector<int> char_coords;
 std::vector<std::vector<int>> block_coords;
+ 
 
 class Image
 {
@@ -82,7 +86,7 @@ public:
 };
 
 Image img[1] = {"./images/BG.png"};
-AlphaImage sprite_img[4] = {"./images/jump_dino_2.png", "./images/run_dino.png", "./images/tileblock.png", "./images/idle_dino.png"};
+AlphaImage sprite_img[4] = {"./images/jump_dino_2.png", "./images/run_dino.png", "./images/flat_tile.png", "./images/idle_dino.png"};
 
 class Texture
 {
@@ -317,28 +321,29 @@ int check_keys(XEvent *e)
     
 		//check if the up arrow keys were pressed
 		if(key == XK_Up) {
-			jump = true;
-			running = false;
+			dino1.jump = true;
+			dino1.running = false;
 			
 		}
 
 		//check if right arrow key was pressed
-		if(key == XK_Right && !gravity) {
-			running = true;
-			direction = 1;
+		if(key == XK_Right && !dino1.gravity) {
+			dino1.running = true;
+			dino1.direction = 1;
 		}
 
-		if(key == XK_Left && !gravity) {
-			running = true;
-			direction = -1;
+		if(key == XK_Left && !dino1.gravity) {
+			dino1.running = true;
+			dino1.direction = -1;
 		}
 	}
 
 	else if(e->type == KeyRelease) {
 		int key = XLookupKeysym(&e->xkey, 0);
 		if(key == XK_Right || key == XK_Left) {
-			running = false;
-			idle = true;
+			dino1.running = false;
+			dino1.idle = true;
+			dino1.direction = 0;
 		}
 	}
 	
@@ -348,8 +353,9 @@ int check_keys(XEvent *e)
 }
 Sprite sprite_jump(sprite_img[0].width, sprite_img[0].height, 250, 174, sprite_img[0].data);
 Sprite sprite_run(sprite_img[1].width, sprite_img[1].height, 250, 174, sprite_img[1].data);
-Sprite sprite_block(sprite_img[2].width, sprite_img[2].height, 100, 100, sprite_img[2].data);
+Sprite sprite_block(sprite_img[2].width, sprite_img[2].height, 100, 49, sprite_img[2].data);
 Sprite sprite_idle(sprite_img[3].width, sprite_img[3].height, 250, 174, sprite_img[3].data);
+int size = 3, w = 1000, h = 750;
 void physics()
 {
 	// move the background
@@ -362,10 +368,11 @@ void physics()
 		b = false;
 	}
 	tile_block(sprite_block, block_coords);
-	handle_gravity(char_coords, block_coords, gravity, jump);
-  	handle_running(running, direction, idle, sprite_run, char_coords, block_coords);
-	handle_jumping(jump, idle, sprite_jump, char_coords, block_coords, direction);
-	handle_idle(idle, sprite_idle, char_coords);
+	handle_gravity(char_coords, block_coords, dino1.gravity, dino1.jump);
+  	handle_running(dino1.running, dino1.direction, dino1.idle, sprite_run, char_coords, block_coords);
+	handle_jumping(dino1.jump, dino1.idle, sprite_jump, char_coords, block_coords, dino1.direction);
+	handle_idle(dino1.idle, sprite_idle, char_coords);
+	handle_platform(sprite_block, block_coords);
 }
 
 
@@ -374,10 +381,6 @@ void render()
 {
 	
 	glClear(GL_COLOR_BUFFER_BIT);
-	//if (title_screen) {
-        //render_title_screen();
-        //return;    
-	//}
 	glColor3f(1.0, 1.0, 1.0);
 	glBindTexture(GL_TEXTURE_2D, g.tex.backTexture);
 	glBegin(GL_QUADS);
@@ -390,11 +393,5 @@ void render()
 	glTexCoord2f(g.tex.xc[1], g.tex.yc[1]);
 	glVertex2i(g.xres, 0);
 	glEnd();
-	
-	/*glPushMatrix();
-	render_platforms();
-	glPopMatrix();
-	glColor3f(1.0, 1.0, 1.0);
-	
-	  */     
+	    
 }

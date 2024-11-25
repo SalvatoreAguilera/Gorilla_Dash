@@ -5,6 +5,7 @@
 #include "handler_sprite.hpp"
 #include <chrono>
 #include <iostream>
+#include <random>
 //the coordinate system for all images
 //8 coordinates in each array
 //each pair is the represents w and h of the image for each corner
@@ -112,11 +113,13 @@ void handle_running(bool& running, int& direction, bool& idle, Sprite& sprite_ru
 }
 
 bool collision_sprite(std::vector<int>& c, int& moveX, int& moveY, std::vector<std::vector<int>>& block_coords) {
+    int characterPaddingx = 45;
+    int characterPaddingy = 12;
     for (int i = 0; i < (int)block_coords.size(); i++) {
-        int charLeft = c[0] + moveX;
-        int charRight = c[4] + moveX;
-        int charBottom = c[1] + moveY;
-        int charTop = c[3] + moveY;
+        int charLeft = c[0] + moveX + characterPaddingx;
+        int charRight = c[4] + moveX - characterPaddingx - 20;
+        int charBottom = c[1] + moveY + characterPaddingy;
+        int charTop = c[3] + moveY - characterPaddingy;
 
         int blockLeft = block_coords[i][0];
         int blockRight = block_coords[i][4];
@@ -145,7 +148,7 @@ void handle_jumping(bool& jump, bool& idle, Sprite& sprite_jump, std::vector<int
 	static auto start = std::chrono::steady_clock::now();
 	auto now = std::chrono::steady_clock::now();
 	auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - start);
-    static int jumpY = 60;
+    static int jumpY = 120;
     int jumpX = 60*direction;
     static bool isAscending = true;
     int temp = jumpY*-1;
@@ -219,40 +222,43 @@ void handle_idle(bool& idle, Sprite& sprite_idle, std::vector<int>& character_co
 
 void tile_block(Sprite& sprite_block, std::vector<std::vector<int>>& block_coords) {
     static bool init = true;
-    
+
     //bottom left corner block
     int w = sprite_block.spriteWidth, h = sprite_block.spriteHeight;
-    for(int i = 0; i < 6; i++) {
-        if(i < 3) {
-            sprite_block.drawSprite(i*(w-1), (h-1), i);
-            if(init) block_coords.push_back({i*(w-1), (h-1),   i*(w-1), (h-1)+100,    i*(w-1)+100, (h-1)+100,    i*(w-1)+100, (h-1)});
-        }
-        else {
-            sprite_block.drawSprite((i-3)*(w-1), 0, i);
-            if(init) block_coords.push_back({(i-3)*(w-1), 0,   (i-3)*(w-1), 100,    (i-3)*(w-1)+100, 100,    (i-3)*(w-1)+100, 0});
-        }
-    }
     
-    h+=50;
-    //bottom right corner block
-    for(int i = 0; i < 6; i++) {
-        int offset = 500;
-        if(i < 3){
-            sprite_block.drawSprite(offset + i*(w-1), (h-1), i);
-            if(init) block_coords.push_back({offset + i*(w-1), (h-1),   offset + i*(w-1), (h-1)+100,    offset + i*(w-1)+100, (h-1)+100,    offset + i*(w-1)+100, (h-1)});
-        }
-        else {
-            sprite_block.drawSprite(offset + (i-3)*(w-1), 0, i);
-            if(init) block_coords.push_back({offset + (i-3)*(w-1), 0,   offset + (i-3)*(w-1), 100,    offset + (i-3)*(w-1)+100, 100,    offset + (i-3)*(w-1)+100, 0});
-        }
+    for(int i = 0;i < 10;i++) {
+        sprite_block.drawSprite(i*(w), 0, 0);
+        if(init) block_coords.push_back({i*(w), (h),   i*(w), (h),    i*(w)+100, (h)+50,    i*(w)+100, (h)});
     }
-
     
     init = false;
+}
+
+auto getCoords = [](std::vector<std::vector<int>>& coords, int& sprite_h, int& sprite_w, 
+    int w, int h) {
+    
+    coords.push_back({(w), (h),   (w), (h+sprite_h),    
+    (w+sprite_w), (h+sprite_h),    (w+sprite_w), (h)});
+};
+
+
+void handle_platform(Sprite& sprite_plat, std::vector<std::vector<int>>& plat_coords){
+    int platform1 = 5, pw1 = 100, ph1 = 225;
+    int platform2 = 3;
+    int platform3 = 3;
+
+    for(int i = 0;i < platform1;i++) {
+        sprite_plat.drawSprite(i*(pw1)+250, ph1, 0);
+        getCoords(plat_coords, sprite_plat.spriteHeight, sprite_plat.spriteWidth, i*pw1+250, ph1);
+
+    }
+
     
 }
 
-void init_character(std::vector<int>& character_coords, Sprite& sprite, Sprite& sprite_block) {
+
+void init_character(std::vector<int>& character_coords, Sprite& sprite, 
+    Sprite& sprite_block) {
     //function intitialize character coordinates
     // uses the width and height of the character sprite and block sprite
     //int wc = sprite.spriteWidth, hc = sprite.spriteHeight;
