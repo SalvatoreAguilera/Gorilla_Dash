@@ -22,6 +22,9 @@ float title_y_offset = 0.0f;
 int current_health = 100;
 int max_health = 100;
 
+// AlphaImage hazard_img[1] = {"./images/spike.png"}; 
+// Sprite sprite_hazard(hazard_img[0].width, hazard_img[0].height, 100, 100, hazard_img[0].data);
+
 void drawText(int x, int y, const char *text, bool large = false)
 {
     static int initialized = 0;
@@ -240,6 +243,20 @@ void render_pause_screen()
     glColor3f(1.0f, 1.0f, 1.0f); 
     drawText(resume_x, resume_y, resume_text, false);
 }
+
+/*
+void init_hazards()
+{
+    Hazard hazard1;
+    hazard1.x = 500;
+    hazard1.y = 100;
+    hazard1.width = sprite_hazard.width;
+    hazard1.height = sprite_hazard.height;
+    hazard1.sprite  sprite_hazard;
+
+    hazards.push_back(hazard1);
+}
+*/
 
 void take_damage(int damage) {
     current_health -= damage;
