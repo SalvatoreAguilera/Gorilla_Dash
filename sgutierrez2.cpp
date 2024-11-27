@@ -6,6 +6,7 @@
 #include <chrono>
 #include <iostream>
 #include <random>
+#include <unordered_set>
 //the coordinate system for all images
 //8 coordinates in each array
 //each pair is the represents w and h of the image for each corner
@@ -231,9 +232,11 @@ void tile_block(Sprite& sprite_block, std::vector<std::vector<int>>& block_coord
         if(init) block_coords.push_back({i*(w), (h),   i*(w), (h),    i*(w)+100, (h)+50,    i*(w)+100, (h)});
     }
     
+
     init = false;
 }
 
+//lambda to add coords to  vector of coordinates
 auto getCoords = [](std::vector<std::vector<int>>& coords, int& sprite_h, int& sprite_w, 
     int w, int h) {
     
@@ -241,19 +244,120 @@ auto getCoords = [](std::vector<std::vector<int>>& coords, int& sprite_h, int& s
     (w+sprite_w), (h+sprite_h),    (w+sprite_w), (h)});
 };
 
+//lamda to gen a random number within a range
+auto randNum = [](int low, int high) {
+    std::random_device rd; 
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> distrib(low, high);
+    return distrib(gen);
+};
 
-void handle_platform(Sprite& sprite_plat, std::vector<std::vector<int>>& plat_coords){
-    int platform1 = 5, pw1 = 100, ph1 = 225;
-    int platform2 = 3;
-    int platform3 = 3;
+//map is to keep track of each individual platform
+// for example if we have a platform with 3 blocks 
+// the pair is <endindex, size> 
+// this is  needed to be ale to generate new platforms when they go out of bounds
+// because we have to remove from block_coords the plat form that went out of bounds 
+void handle_platform(Sprite& sprite_plat, std::vector<std::vector<int>>& plat_coords, std::unordered_map<int,int>& mp){
+    static bool init = true;
+    
+    int platform1 = randNum(4,6), pw1 = 100, ph1 = 225;
+    int platform2 = randNum(1,3), pw2 = 100, ph2 = 450;
+    int platform3 = randNum(1,3), pw3 = 100, ph3 = 450;
+    int offset1 = randNum(200,300);
+    int offset2 = randNum(25, 100);
+    int offset3 = randNum(450,600);
+    
+    if(init) {
+        for(int i = 0;i < platform1;i++) {
+            if(i == 0) mp.insert({plat_coords.size()-1+platform1, platform1});
+            sprite_plat.drawSprite(i*(pw1)+offset1, ph1, 0);
+            getCoords(plat_coords, sprite_plat.spriteHeight, sprite_plat.spriteWidth, i*pw1+offset1, ph1);
+            
+        }
 
-    for(int i = 0;i < platform1;i++) {
-        sprite_plat.drawSprite(i*(pw1)+250, ph1, 0);
-        getCoords(plat_coords, sprite_plat.spriteHeight, sprite_plat.spriteWidth, i*pw1+250, ph1);
+        for(int i = 0;i < platform2;i++) {
+            if(i == 0) mp.insert({plat_coords.size()-1+platform2, platform2});
+            sprite_plat.drawSprite(i*(pw2)+offset2, ph2, 0);
+            getCoords(plat_coords, sprite_plat.spriteHeight, sprite_plat.spriteWidth, i*pw2+offset2, ph2);
+            
+        }
 
+        for(int i = 0;i < platform3;i++) {
+            if(i == 0) mp.insert({plat_coords.size()-1+platform3, platform3});
+            sprite_plat.drawSprite(i*(pw3)+offset3, ph3, 0);
+            getCoords(plat_coords, sprite_plat.spriteHeight, sprite_plat.spriteWidth, i*pw3+offset3, ph3);
+            
+        }
+    }
+
+    std::unordered_set<int> plat_out_bounds;
+    // 10 because the bottom is 10 blocks
+    for(int i = 10;i < plat_coords.size();i++) {
+        int w = plat_coords[i][0], h = plat_coords[i][1];
+        int idx = plat_coords[i][8];
+        
+        int moveX = 1;
+        sprite_plat.drawSprite(w-moveX, h, i);
+        for(int j = 0;j <= 8;j++) {
+            if(j % 2  == 0 && j != 8)
+                plat_coords[i][j] -= moveX;
+        }
+
+        int& plat_right = plat_coords[i][6];
+        //went out of bounds on last block of platform
+        if(plat_right < 0 && mp.find(i) != mp.end()) {
+            std::cout << plat_right << std::endl;
+            plat_out_bounds.insert(i);
+        }
     }
 
     
+    
+    // If platform out of bounds, then make a new one
+    for (auto& idx : plat_out_bounds) {
+        int size = mp[idx];
+        mp.erase(idx);
+        
+        int currH = plat_coords[idx][1]; // Get current height for redraw
+        std::cout << currH << std::endl;
+        int eraseStart = idx - size;
+        int eraseEnd = idx;
+        plat_coords.erase(plat_coords.begin() + eraseStart, plat_coords.begin() + eraseEnd);
+        
+        // Adjust indices in the map after erasing rows
+        for (auto it = mp.begin(); it != mp.end(); ) {
+            if (it->first >= eraseEnd) {
+                int new_key = it->first - (eraseEnd - eraseStart); 
+                int value = it->second;
+
+                it = mp.erase(it);
+                mp.insert({new_key, value});
+            } 
+            else {
+                ++it;
+            }
+        }
+
+        // Add new platforms
+        if (size >= 4) {
+            int platform = randNum(4, 6);
+            for (int i = 0; i < platform; i++) {
+                if(i == 0) mp.insert({plat_coords.size()-1+platform, platform});
+                sprite_plat.drawSprite((i * pw1) + 1000, currH, 0);
+                getCoords(plat_coords, sprite_plat.spriteHeight, sprite_plat.spriteWidth, (i * pw1) + 1000, currH);
+            }
+        } else if(size <= 3) {
+            int platform = randNum(1, 3);
+            for (int i = 0; i < platform; i++) {
+                if(i == 0) mp.insert({plat_coords.size()-1+platform, platform});
+                sprite_plat.drawSprite((i * pw1) + 1000, currH, 0);
+                getCoords(plat_coords, sprite_plat.spriteHeight, sprite_plat.spriteWidth, (i * pw1) + 1000, currH);
+            }
+        }
+    }
+    
+
+    init = false;
 }
 
 
@@ -269,7 +373,7 @@ void init_character(std::vector<int>& character_coords, Sprite& sprite,
 
 void handle_gravity(std::vector<int>& character_coords, std::vector<std::vector<int>>& block_coords, bool& gravity, bool& jump) {
     int moveX = 0;
-    int moveY = -2;
+    int moveY = -3;
     if(jump || collision_sprite(character_coords, moveX, moveY, block_coords)) {
         gravity = false;
         return;

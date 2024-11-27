@@ -23,7 +23,9 @@
 #include "feature.h"
 #include "platforms.h"
 #include <chrono>
+#include <unordered_map>
 #define SPRITES 8
+
 
 //flags to handle different animations
 struct character {
@@ -37,7 +39,7 @@ character dino1;
 
 std::vector<int> char_coords;
 std::vector<std::vector<int>> block_coords;
- 
+std::unordered_map<int,int> coords_mp;
 
 class Image
 {
@@ -372,7 +374,7 @@ void physics()
   	handle_running(dino1.running, dino1.direction, dino1.idle, sprite_run, char_coords, block_coords);
 	handle_jumping(dino1.jump, dino1.idle, sprite_jump, char_coords, block_coords, dino1.direction);
 	handle_idle(dino1.idle, sprite_idle, char_coords);
-	handle_platform(sprite_block, block_coords);
+	handle_platform(sprite_block, block_coords, coords_mp);
 }
 
 

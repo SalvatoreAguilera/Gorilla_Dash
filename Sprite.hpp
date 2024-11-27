@@ -4,7 +4,8 @@
 #include <GL/gl.h>
 #include <vector> 
 
-class Sprite {
+
+class Sprite{
 public:
     GLuint textureID;
     int texWidth, texHeight;

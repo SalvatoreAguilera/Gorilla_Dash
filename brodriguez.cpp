@@ -7,6 +7,7 @@
 #include <X11/keysym.h>
 #include <GL/glx.h>
 #include <cstring>
+#include "Sprite.hpp"
 
 using namespace std;
 //extern class Image;
@@ -337,4 +338,3 @@ void render_platforms()
     //glBindTexture(GL_TEXTURE_2D, 0);
     //glDisable(GL_TEXTURE_2D);
 }
-
