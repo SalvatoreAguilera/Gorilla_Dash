@@ -14,17 +14,23 @@
 #include "feature.h"
 #include "platforms.h"
 #include <chrono>
+#include <unordered_map>
 #define SPRITES 8
 
+
 //flags to handle different animations
-bool running = false; 
-bool jump = false;
-bool idle = true;
-bool gravity = false;
-int direction = 1;
+struct character {
+	bool running = false; 
+	bool jump = false;
+	bool idle = true;
+	bool gravity = false;
+	int direction = 1;
+};
+character dino1;
 
 std::vector<int> char_coords;
 std::vector<std::vector<int>> block_coords;
+std::unordered_map<int,int> coords_mp;
 
 class Image
 {
@@ -73,7 +79,7 @@ public:
 };
 
 Image img[1] = {"./images/BG.png"};
-AlphaImage sprite_img[4] = {"./images/jump_dino_2.png", "./images/run_dino.png", "./images/tileblock.png", "./images/idle_dino.png"};
+AlphaImage sprite_img[4] = {"./images/jump_dino_2.png", "./images/run_dino.png", "./images/flat_tile.png", "./images/idle_dino.png"};
 
 class Texture
 {
@@ -296,6 +302,7 @@ void check_mouse(XEvent *e)
 int check_keys(XEvent *e)
 {
     
+
     // Was there input from the keyboard?
     if (e->type == KeyPress)
     {
@@ -313,45 +320,47 @@ int check_keys(XEvent *e)
         }
     
         //check if the up arrow keys were pressed
-        if(key == XK_Up && !gravity && !paused) {
-            jump = true;
-            running = false;
+        if(key == XK_Up) {
+          dino1.jump = true;
+          dino1.running = false;
         }
 
         //check if right arrow key was pressed
-        if(key == XK_Right && !gravity && !paused) {
-            running = true;
-            direction = 1;
-            std::cout << "right" << std::endl;
+        if(key == XK_Right && !dino1.gravity) {
+          dino1.running = true;
+          dino1.direction = 1;
         }
 
-        if(key == XK_Left && !gravity && !paused) {
-            running = true;
-            direction = -1;
+        if(key == XK_Left && !dino1.gravity) {
+          dino1.running = true;
+          dino1.direction = -1;
         }
+	
     }
     else if(e->type == KeyRelease) {
-        int key = XLookupKeysym(&e->xkey, 0);
-        if(key == XK_Right || key == XK_Left) {
-            running = false;
-            idle = true;
-        }
-    }
+      int key = XLookupKeysym(&e->xkey, 0);
+      if(key == XK_Right || key == XK_Left) {
+        dino1.running = false;
+        dino1.idle = true;
+        dino1.direction = 0;
+      }
+	  }
     
     check_title_keys(e);
     check_pause_keys(e); 
-
+  
     return 0;
 }
 Sprite sprite_jump(sprite_img[0].width, sprite_img[0].height, 250, 174, sprite_img[0].data);
 Sprite sprite_run(sprite_img[1].width, sprite_img[1].height, 250, 174, sprite_img[1].data);
-Sprite sprite_block(sprite_img[2].width, sprite_img[2].height, 100, 100, sprite_img[2].data);
+Sprite sprite_block(sprite_img[2].width, sprite_img[2].height, 100, 49, sprite_img[2].data);
 Sprite sprite_idle(sprite_img[3].width, sprite_img[3].height, 250, 174, sprite_img[3].data);
+int size = 3, w = 1000, h = 750;
 void physics()
 {
 	// move the background
-	//g.tex.xc[0] += 0.00000001;
-	//g.tex.xc[1] += 0.00000001;
+	g.tex.xc[0] += 0.0001;
+	g.tex.xc[1] += 0.0001;
 	static bool b = true;
 	if (b)
 	{
@@ -359,10 +368,13 @@ void physics()
 		b = false;
 	}
 	tile_block(sprite_block, block_coords);
-	handle_gravity(char_coords, block_coords, gravity, jump);
-  	handle_running(running, direction, idle, sprite_run, char_coords, block_coords);
-	handle_jumping(jump, idle, sprite_jump, char_coords, block_coords);
-	handle_idle(idle, sprite_idle, char_coords);
+
+	handle_gravity(char_coords, block_coords, dino1.gravity, dino1.jump);
+  handle_running(dino1.running, dino1.direction, dino1.idle, sprite_run, char_coords, block_coords);
+	handle_jumping(dino1.jump, dino1.idle, sprite_jump, char_coords, block_coords, dino1.direction);
+	handle_idle(dino1.idle, sprite_idle, char_coords);
+	handle_platform(sprite_block, block_coords, coords_mp);
+
 }
 
 
@@ -371,10 +383,6 @@ void render()
 {
 	
 	glClear(GL_COLOR_BUFFER_BIT);
-	if (title_screen) {
-        render_title_screen();
-        return;    
-	}
 	glColor3f(1.0, 1.0, 1.0);
 	glBindTexture(GL_TEXTURE_2D, g.tex.backTexture);
 	glBegin(GL_QUADS);
@@ -388,6 +396,7 @@ void render()
 	glVertex2i(g.xres, 0);
 	glEnd();
 
+
 	render_health_bar();
 	if (paused) {
        	render_pause_screen();
@@ -398,4 +407,5 @@ void render()
 	glColor3f(1.0, 1.0, 1.0);
 	
 	  */     
+
 }
