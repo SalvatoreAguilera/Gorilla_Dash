@@ -1,12 +1,3 @@
-//
-// program: background.cpp
-// author:  Gordon Griesel
-// date:    2017 - 2018
-//
-// The position of the background QUAD does not change.
-// Just the texture coordinates change.
-// In this example, only the x coordinates change.
-//
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -310,48 +301,55 @@ void check_mouse(XEvent *e)
 
 int check_keys(XEvent *e)
 {
-	
-	// Was there input from the keyboard?
-	if (e->type == KeyPress)
-	{
-		int key = XLookupKeysym(&e->xkey, 0);
-		
-		if (key == XK_Escape)
-		{
-			return 1;
-		}
     
-		//check if the up arrow keys were pressed
-		if(key == XK_Up) {
-			dino1.jump = true;
-			dino1.running = false;
-			
-		}
 
-		//check if right arrow key was pressed
-		if(key == XK_Right && !dino1.gravity) {
-			dino1.running = true;
-			dino1.direction = 1;
-		}
+    // Was there input from the keyboard?
+    if (e->type == KeyPress)
+    {
+        int key = XLookupKeysym(&e->xkey, 0);
+        
+        if (key == XK_Escape)
+        {
+            return 1;
+        }
+    
+        // Handle pause functionality
+        if (key == XK_p || key == XK_P) {
+            paused = !paused;
+            return 0;
+        }
+    
+        //check if the up arrow keys were pressed
+        if(key == XK_Up) {
+          dino1.jump = true;
+          dino1.running = false;
+        }
 
-		if(key == XK_Left && !dino1.gravity) {
-			dino1.running = true;
-			dino1.direction = -1;
-		}
-	}
+        //check if right arrow key was pressed
+        if(key == XK_Right && !dino1.gravity) {
+          dino1.running = true;
+          dino1.direction = 1;
+        }
 
-	else if(e->type == KeyRelease) {
-		int key = XLookupKeysym(&e->xkey, 0);
-		if(key == XK_Right || key == XK_Left) {
-			dino1.running = false;
-			dino1.idle = true;
-			dino1.direction = 0;
-		}
-	}
+        if(key == XK_Left && !dino1.gravity) {
+          dino1.running = true;
+          dino1.direction = -1;
+        }
 	
-	check_title_keys(e);
-
-	return 0;
+    }
+    else if(e->type == KeyRelease) {
+      int key = XLookupKeysym(&e->xkey, 0);
+      if(key == XK_Right || key == XK_Left) {
+        dino1.running = false;
+        dino1.idle = true;
+        dino1.direction = 0;
+      }
+	  }
+    
+    check_title_keys(e);
+    check_pause_keys(e); 
+  
+    return 0;
 }
 Sprite sprite_jump(sprite_img[0].width, sprite_img[0].height, 250, 174, sprite_img[0].data);
 Sprite sprite_run(sprite_img[1].width, sprite_img[1].height, 250, 174, sprite_img[1].data);
@@ -370,11 +368,13 @@ void physics()
 		b = false;
 	}
 	tile_block(sprite_block, block_coords);
+
 	handle_gravity(char_coords, block_coords, dino1.gravity, dino1.jump);
-  	handle_running(dino1.running, dino1.direction, dino1.idle, sprite_run, char_coords, block_coords);
+  handle_running(dino1.running, dino1.direction, dino1.idle, sprite_run, char_coords, block_coords);
 	handle_jumping(dino1.jump, dino1.idle, sprite_jump, char_coords, block_coords, dino1.direction);
 	handle_idle(dino1.idle, sprite_idle, char_coords);
 	handle_platform(sprite_block, block_coords, coords_mp);
+
 }
 
 
@@ -395,5 +395,17 @@ void render()
 	glTexCoord2f(g.tex.xc[1], g.tex.yc[1]);
 	glVertex2i(g.xres, 0);
 	glEnd();
-	    
+
+
+	render_health_bar();
+	if (paused) {
+       	render_pause_screen();
+    	}
+	/*glPushMatrix();
+	render_platforms();
+	glPopMatrix();
+	glColor3f(1.0, 1.0, 1.0);
+	
+	  */     
+
 }
