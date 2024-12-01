@@ -75,11 +75,11 @@ AlphaImage::AlphaImage(const char* filename) {
 
 void handle_running(bool& running, int& direction, bool& idle, Sprite& sprite_run, std::vector<int>& character_coords, std::vector<std::vector<int>>& block_coords) {
 	static int i = 0;
+
     if(running == false) {
 		i = 0;
 		return;
 	}
-
     //stop idle animation to start running
     idle = false;
     //direction == -1 then go left | direction == 1 then go right
@@ -247,7 +247,7 @@ auto getCoords = [](std::vector<std::vector<int>>& coords, int& sprite_h, int& s
 //lamda to gen a random number within a range
 auto randNum = [](int low, int high) {
     std::random_device rd; 
-    std::mt19937 gen(rd());
+    std::mt19937 gen(444);
     std::uniform_int_distribution<> distrib(low, high);
     return distrib(gen);
 };

@@ -22,7 +22,6 @@ int PLAYERS = 0;
 #define SPRITES 8
 int myID;
 int prevState = 0, currState = 0;
-int prevDir = 0, currDir = 0;
 //flags to handle different animations
 struct character {
 	bool running = false; 
@@ -45,7 +44,6 @@ enum MoveType {
     GRAVITY = 3,
 };
 void updateCharacter(character& enemy, int moveType, int direction = 0) {
-	std::cout << moveType << "  " << direction << std::endl;
     if (moveType == RUN) {
         enemy.running = true;
         enemy.jump = false;
@@ -103,37 +101,30 @@ auto type2 = [](int& enemyID, int& moveType, int& direction) {
 void handle_receive_send(sf::TcpSocket& socket, int& prevState, int& currState) {
     sf::Packet packet;
     if (socket.receive(packet) == sf::Socket::Done) {
-		std::cout << "packet got" << std::endl;
-        sf::Uint32 msgType;
-        sf::Uint32 id = 0;
-        sf::Uint32 move = 0;
-        sf::Uint32 direction = 0;
+        int msgType = 0;
+        int id = 0;
+        int move = 0;
+        int direction = 0;
         packet >> msgType >> id >> move >> direction;
-		int en_id = static_cast<int>(id);
-		int en_move = static_cast<int>(move);
-		int en_dir = static_cast<int>(direction);
+
         if(msgType == 1) {
-			std::cout << "received type 1" << std::endl;
-            type1(en_id, en_move);
+            type1(id, move);
         }
         else if(msgType == 2) {
-			std::cout << "received type 2" << std::endl;
-            type2(en_id, en_move, en_dir);
+            type2(id, move, direction);
         }
     } 
 
-    if(prevState != currState || currDir != prevDir) {
-		sf::Packet packet2;
+    if(prevState != currState) {
+        prevState = currState;
         sf::Uint32 msgType = 3;
         sf::Uint32 id = myID;
         sf::Uint32 move = currState;
-        sf::Uint32 dir = currDir;
-        packet2 << msgType <<  id << move << dir;
-        if(socket.send(packet2) == sf::Socket::Done) {
+        sf::Uint32 dir = characters[myID].direction;
+        packet << msgType <<  id << move << dir;
+        if(socket.send(packet) == sf::Socket::Done) {
             std::cout << "succes sending packet" << std::endl;
         }
-		prevState = currState;
-		prevDir = currDir;
     }
 }
 
@@ -319,24 +310,14 @@ int main()
 {
 	//connect to server
 	sf::TcpSocket socket;
-	if (socket.connect("172.28.242.6", 8080) == sf::Socket::Done) {
-        handle_receive_send(socket, prevState, currState);
+	if (socket.connect("127.0.0.1", 8080) != sf::Socket::Done) {
+        std::cerr << "Error: Unable to connect to server\n";
+        return 1;
     }
-
-	
-	while (true) {
-        sf::Packet packet;
-        if (socket.receive(packet) == sf::Socket::Done) {
-            sf::Uint32 msgType;
-            packet >> msgType;
-
-            if (msgType == 4) {  
-                std::cout << "All players connected. Starting the game!\n";
-                break;  
-            }
-        }
-    }
+    handle_receive_send(socket, prevState, currState);
 	socket.setBlocking(false);
+	
+
 	init_opengl();
 	int done = 0;
 
@@ -445,25 +426,19 @@ int check_keys(XEvent *e)
     
         //check if the up arrow keys were pressed
         if(key == XK_Up) {
-		  if(currState == 1) prevState = 0;
           characters[myID].jump = true;
           characters[myID].running = false;
-		  currState = 1;
         }
 
         //check if right arrow key was pressed
         if(key == XK_Right && !characters[myID].gravity) {
           characters[myID].running = true;
           characters[myID].direction = 1;
-		  currState = 2;
-		  currDir = 1;
         }
 
         if(key == XK_Left && !characters[myID].gravity) {
           characters[myID].running = true;
           characters[myID].direction = -1;
-		  currState = 2;
-		  currDir = -1;
         }
 	
     }
@@ -473,8 +448,6 @@ int check_keys(XEvent *e)
         characters[myID].running = false;
         characters[myID].idle = true;
         characters[myID].direction = 0;
-		currState = 0;
-		currDir = 0;
       }
 	  }
     
@@ -496,21 +469,20 @@ void physics()
 	static bool b = true;
 	if (b)
 	{
-		for(int i = 0;i < PLAYERS;i++)
-			init_character(char_coords[i], sprite_idle, sprite_block);
+		for(int i = 0;i < 1;i++)
+			init_character(char_coords[i], sprite_run, sprite_block);
 		b = false;
 	}
 
 	tile_block(sprite_block, block_coords);
-	for(int i = 0;i < PLAYERS;i++) {
+	for(int i = 0;i < 1;i++) {
 		handle_gravity(char_coords[i], block_coords, characters[i].gravity, characters[i].jump);
 		handle_running(characters[i].running, characters[i].direction, characters[i].idle, sprite_run, char_coords[i], block_coords);
 		handle_jumping(characters[i].jump, characters[i].idle, sprite_jump, char_coords[i], block_coords, characters[i].direction);
 		handle_idle(characters[i].idle, sprite_idle, char_coords[i]);
-		handle_platform(sprite_block, block_coords, coords_mp);
 	}
 
-	
+	//handle_platform(sprite_block, block_coords, coords_mp);
 
 }
 
