@@ -319,7 +319,7 @@ int main()
 {
 	//connect to server
 	sf::TcpSocket socket;
-	if (socket.connect("172.28.242.6", 8080) == sf::Socket::Done) {
+	if (socket.connect("127.0.0.1", 8080) == sf::Socket::Done) {
         handle_receive_send(socket, prevState, currState);
     }
 
