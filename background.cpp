@@ -112,11 +112,11 @@ void handle_receive_send(sf::TcpSocket& socket, int& prevState, int& currState) 
 		int en_id = static_cast<int>(id);
 		int en_move = static_cast<int>(move);
 		int en_dir = static_cast<int>(direction);
-        if(msgType == 1) {
+        if((int)msgType == 1) {
 			std::cout << "received type 1" << std::endl;
             type1(en_id, en_move);
         }
-        else if(msgType == 2) {
+        else if((int)msgType == 2) {
 			std::cout << "received type 2" << std::endl;
             type2(en_id, en_move, en_dir);
         }
