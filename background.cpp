@@ -333,8 +333,9 @@ int main()
 {
 	//connect to server or run locally 
 	//127.0.0.1
+	//"35.   239.   247.     237"
 	sf::TcpSocket socket;
-	if (socket.connect("35.239.247.237", 8080) == sf::Socket::Done) {
+	if (socket.connect("127.0.0.1", 8080) == sf::Socket::Done) {
         handle_receive_send(socket, prevState, currState);
     }
 
