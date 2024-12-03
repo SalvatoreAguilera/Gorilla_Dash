@@ -23,6 +23,8 @@ int PLAYERS = 0;
 int myID;
 int prevState = 0, currState = 0;
 int prevDir = 0, currDir = 0;
+int dead = 0; 
+extern int current_health;
 //flags to handle different animations
 struct character {
 	bool running = false; 
@@ -30,11 +32,13 @@ struct character {
 	bool idle = true;
 	bool gravity = false;
 	int direction = 1;
+	int dead = 0; 
 };
 std::vector<character> characters;
 std::vector<std::vector<int>> char_coords;
 
 std::vector<std::vector<int>> block_coords;
+std::vector<std::vector<int>> plane_coords(1, std::vector<int>(8));
 std::unordered_map<int,int> coords_mp;
 
 //moveType for sending to server
@@ -43,7 +47,10 @@ enum MoveType {
     JUMP = 1,
     RUN = 2,
     GRAVITY = 3,
+	DEAD = 4
 };
+
+
 void updateCharacter(character& enemy, int moveType, int direction = 0) {
 	std::cout << moveType << "  " << direction << std::endl;
     if (moveType == RUN) {
@@ -68,6 +75,13 @@ void updateCharacter(character& enemy, int moveType, int direction = 0) {
         enemy.direction = 0;
     } 
     else if (moveType == GRAVITY) {
+        enemy.gravity = true;
+        enemy.idle = false;
+        enemy.running = false;
+        enemy.jump = false;
+    } 
+	else if (moveType == DEAD) {
+		enemy.dead = 1;
         enemy.gravity = true;
         enemy.idle = false;
         enemy.running = false;
@@ -185,7 +199,7 @@ public:
 };
 
 Image img[1] = {"./images/BG.png"};
-AlphaImage sprite_img[4] = {"./images/jump_dino_2.png", "./images/run_dino.png", "./images/flat_tile.png", "./images/idle_dino.png"};
+AlphaImage sprite_img[6] = {"./images/jump_dino_2.png", "./images/run_dino.png", "./images/flat_tile.png", "./images/idle_dino.png", "./images/plane.png", "./images/dead_dino.png" };
 
 class Texture
 {
@@ -317,9 +331,10 @@ void get_sprite(void);
 //===========================================================================
 int main()
 {
-	//connect to server
+	//connect to server or run locally 
+	//127.0.0.1
 	sf::TcpSocket socket;
-	if (socket.connect("127.0.0.1", 8080) == sf::Socket::Done) {
+	if (socket.connect("35.239.247.237", 8080) == sf::Socket::Done) {
         handle_receive_send(socket, prevState, currState);
     }
 
@@ -342,6 +357,7 @@ int main()
 
 	while (!done)
 	{
+		handle_receive_send(socket, prevState, currState);
 		while (x11.getXPending())
 		{
 			XEvent e = x11.getXNextEvent();
@@ -349,9 +365,9 @@ int main()
 			check_mouse(&e);
 			done = check_keys(&e);
 		}
+		
 		render();
 		physics();
-		handle_receive_send(socket, prevState, currState);
 		x11.swapBuffers();
 
 	}
@@ -444,7 +460,7 @@ int check_keys(XEvent *e)
         }
     
         //check if the up arrow keys were pressed
-        if(key == XK_Up) {
+        if(key == XK_Up && !dead) {
 		  if(currState == 1) prevState = 0;
           characters[myID].jump = true;
           characters[myID].running = false;
@@ -452,14 +468,14 @@ int check_keys(XEvent *e)
         }
 
         //check if right arrow key was pressed
-        if(key == XK_Right && !characters[myID].gravity) {
+        if(key == XK_Right && !characters[myID].gravity && !dead) {
           characters[myID].running = true;
           characters[myID].direction = 1;
 		  currState = 2;
 		  currDir = 1;
         }
 
-        if(key == XK_Left && !characters[myID].gravity) {
+        if(key == XK_Left && !characters[myID].gravity && !dead) {
           characters[myID].running = true;
           characters[myID].direction = -1;
 		  currState = 2;
@@ -469,7 +485,7 @@ int check_keys(XEvent *e)
     }
     else if(e->type == KeyRelease) {
       int key = XLookupKeysym(&e->xkey, 0);
-      if(key == XK_Right || key == XK_Left) {
+      if((key == XK_Right || key == XK_Left) && (!dead)) {
         characters[myID].running = false;
         characters[myID].idle = true;
         characters[myID].direction = 0;
@@ -487,6 +503,9 @@ Sprite sprite_jump(sprite_img[0].width, sprite_img[0].height, 250, 174, sprite_i
 Sprite sprite_run(sprite_img[1].width, sprite_img[1].height, 250, 174, sprite_img[1].data);
 Sprite sprite_block(sprite_img[2].width, sprite_img[2].height, 100, 49, sprite_img[2].data);
 Sprite sprite_idle(sprite_img[3].width, sprite_img[3].height, 250, 174, sprite_img[3].data);
+Sprite sprite_plane(sprite_img[4].width, sprite_img[4].height, 147, 100, sprite_img[4].data);
+Sprite sprite_dead(sprite_img[5].width, sprite_img[5].height, 250, 174, sprite_img[5].data);
+
 int size = 3, w = 1000, h = 750;
 void physics()
 {
@@ -500,16 +519,28 @@ void physics()
 			init_character(char_coords[i], sprite_idle, sprite_block);
 		b = false;
 	}
-
+	
 	tile_block(sprite_block, block_coords);
 	for(int i = 0;i < PLAYERS;i++) {
-		handle_gravity(char_coords[i], block_coords, characters[i].gravity, characters[i].jump);
 		handle_running(characters[i].running, characters[i].direction, characters[i].idle, sprite_run, char_coords[i], block_coords);
 		handle_jumping(characters[i].jump, characters[i].idle, sprite_jump, char_coords[i], block_coords, characters[i].direction);
 		handle_idle(characters[i].idle, sprite_idle, char_coords[i]);
+		handle_death(sprite_dead, char_coords[i], characters[i].dead);
+		handle_gravity(char_coords[i], block_coords, characters[i].gravity, characters[i].jump);
 		handle_platform(sprite_block, block_coords, coords_mp);
+		handle_plane(sprite_plane, plane_coords, char_coords[myID], current_health);
 	}
-
+	if(current_health <= 0) {
+		currState = 4;
+		characters[myID].dead = 1;
+		characters[myID].running = false;
+		characters[myID].idle = false;
+		characters[myID].jump = false;
+	}
+	if(char_coords[myID][1] < 0) {
+		current_health = 0;
+		char_coords[myID] = { 0,50, 0,224, 250,224, 250,50 };
+	}
 	
 
 }
@@ -537,12 +568,6 @@ void render()
 	render_health_bar();
 	if (paused) {
        	render_pause_screen();
-    }
-	/*glPushMatrix();
-	render_platforms();
-	glPopMatrix();
-	glColor3f(1.0, 1.0, 1.0);
-	
-	  */     
+    }   
 
 }

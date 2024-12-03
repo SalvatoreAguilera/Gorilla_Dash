@@ -89,7 +89,7 @@ auto type3 = []() {
 
 
 auto connect_client_server = [](sf::TcpSocket& socket) {
-    if (socket.connect("127.0.0.1", 8080) != sf::Socket::Status::Done) {
+    if (socket.connect("34.56.232.94", 8080) != sf::Socket::Status::Done) {
         std::cerr << "Error: Unable to connect to server\n";
         return 1;
     }

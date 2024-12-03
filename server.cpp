@@ -1,6 +1,8 @@
 #include <SFML/Network.hpp>
 #include <iostream>
 #include <vector>
+#include <omp.h>
+
 #define CLIENTS 2
 
 struct PlayerState {
@@ -15,6 +17,7 @@ enum MoveType {
     JUMP = 1,
     RUN = 2,
     GRAVITY = 3,
+    DEAD = 4
 };
 
 
@@ -59,20 +62,16 @@ int main() {
         std::cout << "Client " << currClients + 1 << " connected with ID " << playerIDs[currClients] << std::endl;
         currClients++;
     }
-
+    
     sendStartSignal(clients);
 
     while (true) {
-        if (selector.wait(sf::milliseconds(100))) {
+        if (selector.wait(sf::milliseconds(1))) {
+            //#pragma omp parallel for
             for (int i = 0; i < CLIENTS; i++) {
                 if (selector.isReady(clients[i])) {
                     sf::Packet packet;
                     if (clients[i].receive(packet) == sf::Socket::Done) {
-                        /*int m,id,mov,dir;
-                        packet >> m >> id >> mov >> dir;
-                        std::cout << "type : " << m << " id: "  << id
-                             << " mov: " << mov
-                             << " dir: " << dir << std::endl;;*/
                         sendStates(packet, clients);
                     }
                 }
@@ -89,14 +88,14 @@ void sendStates(sf::Packet& packet, std::vector<sf::TcpSocket>& clients) {
     sf::Uint32 move;
     sf::Uint32 direction;
     packet >> msgType >> id >> move >> direction;
-    std::cout << msgType << " " << id << " " << move << std::endl;
+    sf::Packet outPacket;
+    msgType = 2;
+    outPacket << msgType << id << move << direction;
+    #pragma omp parallel for
     for (int i = 0; i < CLIENTS; i++) {
-        msgType = 2;
         if (i != (int)id) {
-            sf::Packet outPacket;
-            outPacket << msgType << id << move << direction;
-            
             if (clients[i].send(outPacket) != sf::Socket::Done) {
+                #pragma omp critical
                 std::cerr << "Error sending data to client " << i + 1 << "\n";
             }
         }
@@ -105,6 +104,7 @@ void sendStates(sf::Packet& packet, std::vector<sf::TcpSocket>& clients) {
 
 
 void sendStartSignal(std::vector<sf::TcpSocket>& clients) {
+    #pragma omp parallel for
     for (int i = 0; i < CLIENTS; i++) {
         sf::Packet startPacket;
         sf::Uint32 msgType = 4; 

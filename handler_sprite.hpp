@@ -11,4 +11,6 @@ void init_character(std::vector<int>& character_coords, Sprite& sprite, Sprite& 
 void handle_gravity(std::vector<int>& character_coords, std::vector<std::vector<int>>& block_coords, bool& gravity, bool& jump);
 bool collision_sprite(std::vector<int>& c, int& moveX, int& moveY, std::vector<std::vector<int>>& block_coords);
 void handle_platform(Sprite& sprite_block, std::vector<std::vector<int>>& block_coords, std::unordered_map<int,int>& mp);
+void handle_plane(Sprite& plane, std::vector<std::vector<int>>& plane_coords, std::vector<int>& char_coords, int& health);
+void handle_death(Sprite& sprite_dead,std::vector<int>&  char_coords, int& dead);
 #endif

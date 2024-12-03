@@ -7,10 +7,13 @@
 #include <iostream>
 #include <random>
 #include <unordered_set>
+#include "feature.h"
+
 //the coordinate system for all images
 //8 coordinates in each array
 //each pair is the represents w and h of the image for each corner
 
+extern int current_health;
 
 /*Added everythign regarding character animation, movement, and collision, created multiple classes
     like AlphaImage which reads in the character sprtie, handler_sprite which handles different movememnt events 
@@ -439,4 +442,77 @@ void handle_gravity(std::vector<int>& character_coords, std::vector<std::vector<
         character_coords[5] += moveY;
         character_coords[7] += moveY;
     }
+}
+
+
+auto no_seed_random = [](int min, int max) {
+    static std::random_device rd; // Seed generator
+    static std::mt19937 gen(rd()); // Mersenne Twister RNG
+    std::uniform_int_distribution<> dist(min, max); // Define range [min, max]
+
+    return dist(gen);
+};
+//platform are drawn 225 away from each other
+// of course I am drawing plane but this not optimal on resize
+void handle_plane(Sprite& plane, std::vector<std::vector<int>>& plane_coords, std::vector<int>& character_coords, int& health) {
+    static bool init = true;
+    static int init_spot = no_seed_random(0, 2);
+    int height = 225;
+    int w = plane.spriteWidth, h = plane.spriteHeight;
+    int offset = (225 - h) / 2; //plane in middle
+    static int flight = 1;
+    if(init) {
+        plane.drawSprite(1000, height*init_spot + offset, 0);
+        int pw = 1000, ph = height*init_spot + offset; 
+        plane_coords[0] = {pw,ph, pw,ph+h, pw+w,ph+h, pw+w, ph};
+    }
+    else {
+        int moveX = -2;
+        int moveY = 0;
+        if(collision_sprite(character_coords, moveX, moveY, plane_coords) && flight) {
+            take_damage(20); //lose 30 health
+            health-=20;
+            flight = 0;
+        }
+        plane_coords[0][0] -= 2;
+        
+        plane.drawSprite(plane_coords[0][0], height*init_spot + offset, 0);
+        int pw = plane_coords[0][0], ph = height*init_spot + offset;
+        plane_coords[0] = {pw,ph, pw,ph+h, pw+w,ph+h, pw+w, ph};
+    }
+    //plane goes out of bounds
+    if(plane_coords[0][6] <= 0) {
+        init_spot = no_seed_random(0, 2);
+        plane_coords[0][0] += 1100;
+        plane.drawSprite(plane_coords[0][0], height*init_spot + offset, 0);
+        int pw = plane_coords[0][0], ph = height*init_spot + offset;
+        plane_coords[0] = {pw,ph, pw,ph+h, pw+w,ph+h, pw+w, ph};
+        flight = 1;
+    }
+    
+
+    init = false;
+}
+
+void handle_death(Sprite& sprite_dead, std::vector<int>& character_coords, int& dead) {
+    static int i = 0;
+    if(!dead) {
+        return;
+    }
+
+    static auto start = std::chrono::steady_clock::now();
+
+    if (i < 5) {
+        auto now = std::chrono::steady_clock::now();
+        auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - start);
+
+        if (elapsed.count() >= 100) {
+            sprite_dead.drawSprite(character_coords[0], character_coords[1], i);
+            i++; 
+        }
+    }
+    
+    sprite_dead.drawSprite(character_coords[0], character_coords[1], i);
+    
+
 }
