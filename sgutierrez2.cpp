@@ -7,6 +7,7 @@
 #include <iostream>
 #include <random>
 #include <unordered_set>
+#include <functional>
 //the coordinate system for all images
 //8 coordinates in each array
 //each pair is the represents w and h of the image for each corner
@@ -237,180 +238,59 @@ void tile_block(Sprite& sprite_block, std::vector<std::vector<int>>& block_coord
 }
 
 //lambda to add coords to  vector of coordinates
-auto getCoords = [](std::vector<std::vector<int>>& coords, int& sprite_h, int& sprite_w, 
-    int w, int h) {
-    
-    coords.push_back({(w), (h),   (w), (h+sprite_h),    
-    (w+sprite_w), (h+sprite_h),    (w+sprite_w), (h)});
-};
+std::function<void(std::vector<std::vector<int>>&, int&, int&, int, int)> getCoords =
+    [](std::vector<std::vector<int>>& coords, int& sprite_h, int& sprite_w, int w, int h) {
+        coords.push_back({(w), (h),   (w), (h+sprite_h),
+                          (w+sprite_w), (h+sprite_h),    (w+sprite_w), (h)});
+    };
 
-//lamda to gen a random number within a range
-auto randNum = [](int low, int high) {
-    std::random_device rd; 
+// Lambda to generate a random number within a range
+std::function<int(int, int)> randNum = [](int low, int high) {
+    std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> distrib(low, high);
     return distrib(gen);
 };
 
-//lamda to move platforms right
-// used auto because too lazy to write std::vec...
-auto moveRight = [](auto& plat_coords, Sprite& sprite_plat) {
-    for(int i = 10;i < (int)plat_coords.size();i++) {
+// Lambda to move platforms right
+std::function<void(std::vector<std::vector<int>>&, Sprite&)> moveRight = [](auto& plat_coords, Sprite& sprite_plat) {
+    for (int i = 10; i < (int)plat_coords.size(); i++) {
         int w = plat_coords[i][0], h = plat_coords[i][1];
-        
-        int moveX = 1;
-        sprite_plat.drawSprite(w-moveX, h, i);
-        for(int j = 0;j <= 8;j++) {
-            if(j % 2  == 0 && j != 8)
+        int moveX = 3;
+
+        sprite_plat.drawSprite(w - moveX, h, i);
+        for (int j = 0; j <= 8; j++) {
+            if (j % 2 == 0 && j != 8)
                 plat_coords[i][j] -= moveX;
         }
     }
 };
 
-//lamda for out of bounds check of platforms
-// used auto because too lazy to write std::vec...
-auto outOfBounds = [](std::unordered_set<int>& plat_out_bounds, auto& plat_coords , auto& mp) {
+// Lambda for out-of-bounds check of platforms
+std::function<void(std::unordered_set<int>&, std::vector<std::vector<int>>&, std::unordered_map<int, int>&)> outOfBounds = [](std::unordered_set<int>& plat_out_bounds, auto& plat_coords, auto& mp) {
     for (auto& entry : mp) {
-        int last_block_idx = entry.first; 
+        int last_block_idx = entry.first;
+        int& plat_right = plat_coords[last_block_idx][6];
 
-        int& plat_right = plat_coords[last_block_idx][6]; 
-
-        
         if (plat_right <= 0) {
             plat_out_bounds.insert(last_block_idx);
         }
     }
 };
 
-//delete from map given a vector 
-auto mapDelete = [](auto& to_erase, auto& mp){
+// Deletes keys from a map given a vector of keys
+std::function<void(const std::vector<int>&, std::unordered_map<int, int>&)> mapDelete = [](auto& to_erase, auto& mp) {
     for (int key : to_erase) {
         mp.erase(key);
     }
 };
 
-//inserts a vector of pairs to map
-auto mapInsert = [](auto& to_insert, auto& mp){
+// Inserts a vector of pairs into a map
+std::function<void(const std::vector<std::pair<int, int>>&, std::unordered_map<int, int>&)> mapInsert = [](auto& to_insert, auto& mp) {
     for (auto& pair : to_insert) {
         mp.insert(pair);
     }
 };
-//map is to keep track of each individual platform
-// for example if we have a platform with 3 blocks 
-// the pair is <endindex, size> 
-// this is  needed to be ale to generate new platforms when they go out of bounds
-// because we have to remove from block_coords the plat form that went out of bounds 
-void handle_platform(Sprite& sprite_plat, std::vector<std::vector<int>>& plat_coords, std::unordered_map<int,int>& mp){
-    static bool init = true;
-    
-    if(init) {
-        int platform1 = randNum(5,8), pw1 = 100, ph1 = 225;
-        int platform2 = 4, pw2 = 100, ph2 = 450;
-        int platform3 = 4, pw3 = 100, ph3 = 450;
-        
-        int offset1 = randNum(200,300);
-        int offset2 = 100;
-        int offset3 = 800;
-        //middle plat
-        for(int i = 0;i < platform1;i++) {
-            if(i == 0) mp.insert({plat_coords.size()-1+platform1, platform1});
-            sprite_plat.drawSprite(i*(pw1)+offset1, ph1, 0);
-            getCoords(plat_coords, sprite_plat.spriteHeight, sprite_plat.spriteWidth, i*pw1+offset1, ph1);
-            
-        }
-
-
-        //left plat
-        for(int i = 0;i < platform2;i++) {
-            if(i == 0) mp.insert({plat_coords.size()-1+platform2, platform2});
-            sprite_plat.drawSprite(i*(pw2)+offset2, ph2, 0);
-            getCoords(plat_coords, sprite_plat.spriteHeight, sprite_plat.spriteWidth, i*pw2+offset2, ph2);
-            
-        }
-
-
-        //right plat
-        for(int i = 0;i < platform3;i++) {
-            if(i == 0) mp.insert({plat_coords.size()-1+platform3, platform3});
-            sprite_plat.drawSprite(i*(pw3)+offset3, ph3, 0);
-            getCoords(plat_coords, sprite_plat.spriteHeight, sprite_plat.spriteWidth, i*pw3+offset3, ph3);
-            
-        }
-
-
-    }
-
-    //move plats Right
-    moveRight(plat_coords, sprite_plat);
-    std::unordered_set<int> plat_out_bounds;
-
-    //check out of bounds plats
-    outOfBounds(plat_out_bounds,plat_coords, mp);
-   
-
-    
-    
-    // If platform out of bounds, then make a new one
-    for (auto& idx : plat_out_bounds) {
-        int size = mp[idx];
-        mp.erase(idx);
-        int currH = plat_coords[idx][1]; // Get current height for redraw
-        int eraseStart = idx - size + 1;
-        int eraseEnd = idx;
-        //deletes old vectors coords from 2d list
-        plat_coords.erase(plat_coords.begin() + eraseStart, plat_coords.begin() + eraseEnd); 
-        
-        // Adjust indices in the map after erasing rows
-        std::vector<std::pair<int, int>> to_insert; // For new keys and values
-        std::vector<int> to_erase; 
-        for (auto& m : mp) {
-            if (m.first >= eraseEnd) {
-                int new_key = m.first - (eraseEnd - eraseStart); 
-                int value = m.second;
-                
-                to_insert.push_back({new_key, value});
-                to_erase.push_back(m.first);
-
-            } 
-        }
-
-        // delete old keys from map
-        mapDelete(to_erase, mp);
-        // Insert new keys
-        mapInsert(to_insert, mp);
-        
-        
-        
-        // Add new platforms
-        //big platform
-        if (size >= 5) {
-            int platform = randNum(5, 8);
-            for (int i = 0; i < platform; i++) {
-                if(i == 0) mp.insert({plat_coords.size()-1+platform, platform});
-                sprite_plat.drawSprite((i * 100) + 1000, currH, 0);
-                getCoords(plat_coords, sprite_plat.spriteHeight, sprite_plat.spriteWidth, (i * 100) + 1000, currH);
-            }
-        }
-        //small platform 
-        else if(size <= 4) {
-            int platform = randNum(1, 4);
-            //we need to calculate offset to keep the same distance as the init dits with the platforms
-            // blocks = 4
-            // block - platform
-            int calc = 4 - platform;
-            int offset = calc*100;
-            for (int i = 0; i < platform; i++) {
-                if(i == 0) mp.insert({plat_coords.size()-1+platform, platform});
-                sprite_plat.drawSprite((i * 100) + 1000 + offset, currH, 0);
-                getCoords(plat_coords, sprite_plat.spriteHeight, sprite_plat.spriteWidth, (i * 100) + 1000 + offset, currH);
-            }
-        }
-        
-    }
-    
-    init = false;
-}
-
 
 void init_character(std::vector<int>& character_coords, Sprite& sprite, 
     Sprite& sprite_block) {
