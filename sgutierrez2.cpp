@@ -252,11 +252,16 @@ std::function<int(int, int)> randNum = [](int low, int high) {
     return distrib(gen);
 };
 
+extern bool end_screen;
 // Lambda to move platforms right
 std::function<void(std::vector<std::vector<int>>&, Sprite&)> moveRight = [](auto& plat_coords, Sprite& sprite_plat) {
     for (int i = 10; i < (int)plat_coords.size(); i++) {
         int w = plat_coords[i][0], h = plat_coords[i][1];
-        int moveX = 3;
+        int moveX;
+        if (!end_screen)
+            moveX = 1;
+        else
+            moveX = 0;
 
         sprite_plat.drawSprite(w - moveX, h, i);
         for (int j = 0; j <= 8; j++) {

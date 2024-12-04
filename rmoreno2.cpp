@@ -263,7 +263,7 @@ void init_hazards()
 void take_damage(int damage) {
     current_health -= damage;
     if (current_health == 0)
-        end_screen == true;
+        end_screen = true;
 }
 
 void heal(int amount) {
