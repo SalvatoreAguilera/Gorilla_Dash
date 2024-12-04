@@ -9,6 +9,9 @@
 
 void render_score();
 void render_end_screen();
+void render_damaging_objects();
+extern int current_health;
+extern void take_damage(int);
 extern std::function<void(std::vector<std::vector<int>>&, int&, int&, int, int)> getCoords;
 extern std::function<int(int, int)> randNum;
 extern std::function<void(std::vector<std::vector<int>>&, Sprite&)> moveRight;
