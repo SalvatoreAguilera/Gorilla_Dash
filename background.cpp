@@ -15,6 +15,9 @@
 #include "platforms.h"
 #include <chrono>
 #include <unordered_map>
+#include "fonts.h"
+#include <ctime>
+#include <cstdlib>
 #define SPRITES 8
 
 
@@ -27,6 +30,9 @@ struct character {
 	int direction = 1;
 };
 character dino1;
+
+// flag to handle end screen
+bool end_screen = false;
 
 std::vector<int> char_coords;
 std::vector<std::vector<int>> block_coords;
@@ -211,7 +217,7 @@ void get_sprite(void);
 //===========================================================================
 int main()
 {
-	
+	srand(time(0));
 	init_opengl();
 	int done = 0;
 
@@ -249,7 +255,8 @@ void init_opengl(void)
 	// glClear(GL_COLOR_BUFFER_BIT);
 	// Do this to allow texture maps
 	glEnable(GL_TEXTURE_2D);
-	//
+	initialize_fonts();
+    //
 	// load the images file into a ppm structure.
 	//
 	g.tex.backImage = &img[0];
@@ -370,19 +377,23 @@ void physics()
 	tile_block(sprite_block, block_coords);
 
 	handle_gravity(char_coords, block_coords, dino1.gravity, dino1.jump);
-  handle_running(dino1.running, dino1.direction, dino1.idle, sprite_run, char_coords, block_coords);
+    handle_running(dino1.running, dino1.direction, dino1.idle, sprite_run, char_coords, block_coords);
 	handle_jumping(dino1.jump, dino1.idle, sprite_jump, char_coords, block_coords, dino1.direction);
 	handle_idle(dino1.idle, sprite_idle, char_coords);
 	handle_platform(sprite_block, block_coords, coords_mp);
 
 }
 
-
-
 void render()
 {
-	
-	glClear(GL_COLOR_BUFFER_BIT);
+    
+    glClear(GL_COLOR_BUFFER_BIT);
+	    if (title_screen) {
+            render_title_screen();
+            return;    
+	    }
+    
+
 	glColor3f(1.0, 1.0, 1.0);
 	glBindTexture(GL_TEXTURE_2D, g.tex.backTexture);
 	glBegin(GL_QUADS);
@@ -396,16 +407,21 @@ void render()
 	glVertex2i(g.xres, 0);
 	glEnd();
 
-
-	render_health_bar();
+    render_health_bar();
 	if (paused) {
        	render_pause_screen();
     	}
-	/*glPushMatrix();
-	render_platforms();
-	glPopMatrix();
-	glColor3f(1.0, 1.0, 1.0);
-	
-	  */     
 
+    if (!end_screen) {
+        render_score();
+        render_damaging_objects();
+    }
+    else {
+        render_end_screen();
+    }
 }
+
+
+
+
+
