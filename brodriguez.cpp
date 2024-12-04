@@ -36,7 +36,6 @@ public:
         w = 6;
         h = 6;
 
-        // Set positions for different platforms
         pos[0] = g.xres / 0.78; // high
         pos[1] = g.yres / 1.3;
         
@@ -50,7 +49,7 @@ public:
     void randomize_size() {
         // Randomly set width and height (6x6 or 10x10)
         w = (rand() % 2 == 0) ? 6 : 10;
-        h = w; //(rand() % 2 == 0) ? 6 : 10;
+        h = w;
     }
 } d;
 
@@ -64,7 +63,7 @@ public:
     }
 } s;
 
-// hand_platform func worked on by Bryan and Salvatore
+// this func was worked on by Bryan and Salvatore
 //map is to keep track of each individual platform
 // for example if we have a platform with 3 blocks 
 // the pair is <endindex, size> 

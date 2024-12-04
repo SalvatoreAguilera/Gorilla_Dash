@@ -20,7 +20,6 @@
 #include <cstdlib>
 #define SPRITES 8
 
-
 //flags to handle different animations
 struct character {
 	bool running = false; 
@@ -256,7 +255,7 @@ void init_opengl(void)
 	// Do this to allow texture maps
 	glEnable(GL_TEXTURE_2D);
 	initialize_fonts();
-    //
+	//
 	// load the images file into a ppm structure.
 	//
 	g.tex.backImage = &img[0];
@@ -377,7 +376,11 @@ void physics()
 	tile_block(sprite_block, block_coords);
 
 	handle_gravity(char_coords, block_coords, dino1.gravity, dino1.jump);
+<<<<<<< HEAD
     handle_running(dino1.running, dino1.direction, dino1.idle, sprite_run, char_coords, block_coords);
+=======
+  	handle_running(dino1.running, dino1.direction, dino1.idle, sprite_run, char_coords, block_coords);
+>>>>>>> cf837c23678489ce5397125a1315f0eeba23e99e
 	handle_jumping(dino1.jump, dino1.idle, sprite_jump, char_coords, block_coords, dino1.direction);
 	handle_idle(dino1.idle, sprite_idle, char_coords);
 	handle_platform(sprite_block, block_coords, coords_mp);
@@ -409,7 +412,15 @@ void render()
 
     render_health_bar();
 	if (paused) {
-       	render_pause_screen();
+       		render_pause_screen();
+    	}
+
+	if (!end_screen) {
+        	render_score();
+		render_damaging_objects();
+    	}
+    	else {
+        	render_end_screen();
     	}
 
     if (!end_screen) {
