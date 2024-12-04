@@ -16,8 +16,9 @@
 #include <chrono>
 #include <unordered_map>
 #include "fonts.h"
+#include <ctime>
+#include <cstdlib>
 #define SPRITES 8
-
 
 //flags to handle different animations
 struct character {
@@ -215,7 +216,7 @@ void get_sprite(void);
 //===========================================================================
 int main()
 {
-	
+	srand(time(0));
 	init_opengl();
 	int done = 0;
 
@@ -409,7 +410,7 @@ void render()
 
 	if (!end_screen) {
         	render_score();
-        	end_screen = true;
+		render_damaging_objects();
     	}
     	else {
         	render_end_screen();
