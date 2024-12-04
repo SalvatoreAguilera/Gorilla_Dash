@@ -11,37 +11,59 @@
 #include <sstream>
 #include "handler_sprite.hpp"
 #include <random>
+#include <cstdlib>
+#include <ctime>
 
 using namespace std;
 
 extern bool end_screen;
+extern vector<int> block_coords;
+extern vector<int> char_coords;
+extern int current_health;
+extern void take_damage();
 
 extern class Global {
 public:
     int xres, yres;
 } g;
 
-extern vector<int> block_coords;
+class Damage {
+public:
+    float pos[4];
+    float vel[2];
+    int w, h;
+    Damage() {
+        w = 6;
+        h = 6;
+        
+        pos[0] = g.xres / 0.78; // high
+        pos[1] = g.yres / 1.3;
+        
+        pos[2] = g.xres / 1.3; // low
+        pos[3] = g.yres / 5.2;
+
+        vel[0] = -0.3f; // velocity for moving platforms
+        vel[1] = 0.0f;
+    }
+
+    void randomize_size() {
+        // Randomly set width and height (6x6 or 10x10)
+        w = (rand() % 2 == 0) ? 6 : 10;
+        h = w;
+    }
+} d;
+
 class Score {
 public:
-    //float platform_start_x;
-    //float last_increment_x;
     float increment_distance;
     float total_distance;
-    //float low_platform_x;
-    //float last_low_platform_x;
-    //float pixels_to_feet;
     Score() {
-        //platform_start_x = 0.0f;
-        //last_increment_x = 0.0f;
         increment_distance = 0.001f;
         total_distance = 0.0f;
-        //low_platform_x = 0.0f; //block_coords[0]; //box.pos[2];
-        //last_low_platform_x = low_platform_x;
-        //pixels_to_feet = 0.001f;
     }
 } s;
 
+// this func was worked on by Bryan and Salvatore
 //map is to keep track of each individual platform
 // for example if we have a platform with 3 blocks 
 // the pair is <endindex, size> 
@@ -181,8 +203,18 @@ void render_end_screen() {
 
     Rect r2;
     r2.bot = g.yres / 2;
-    r2.left = g.xres / 2;
+    r2.left = g.xres / 2.5;
     r2.center = 0;
+ 
+    Rect r3;
+    r3.bot = g.yres / 2.15;
+    r3.left = g.xres / 2.25;
+    r3.center = 0;
+
+    Rect r4;
+    r4.bot = g.yres / 2.3;
+    r4.left = g.xres / 2.12;
+    r4.center = 0;
 
     // transparent screen
     glColor4f(0.0f, 0.0f, 0.0f, 0.5f);
@@ -197,12 +229,79 @@ void render_end_screen() {
     glDisable(GL_BLEND);
 
     char end_text[128];
+    char final_score_text[128];
+    char end_distance[128];
     snprintf(end_text, sizeof(end_text), "G A M E    O V E R");
+    snprintf(final_score_text, sizeof(final_score_text), "Final score:");
+    snprintf(end_distance, sizeof(end_distance), "%.2f m", s.total_distance);
 
-    glColor3ub(255, 255, 255); // Set text color to white
+    glColor3ub(255, 255, 255); // Set color to white
     ggprint16(&r2, 16, 0x000000, end_text);
+    
+    glColor3ub(255, 255, 255);
+    ggprint16(&r3, 13, 0x000000, final_score_text);
+    
+    glColor3ub(255, 255, 255);
+    ggprint16(&r4, 13, 0x000000, end_distance);
+    
+    glColor3ub(255, 255, 255); // Set color back to white
 }
 
+bool check_collision(float obj1_x, float obj1_y, int obj1_w, int obj1_h,
+                     const std::vector<int>& char_coords) {
+    // Calculate the Dino's bounding box from char_coords
+    int dino_min_x = char_coords[0]; // Bottom-left x
+    int dino_min_y = char_coords[1]; // Bottom-left y
+    int dino_max_x = char_coords[6]; // Top-right x
+    int dino_max_y = char_coords[5]; // Top-right y
+
+    return !(obj1_x + obj1_w < dino_min_x || 
+             obj1_x > dino_max_x || 
+             obj1_y + obj1_h < dino_min_y || 
+             obj1_y > dino_max_y);
+}
+
+void render_damaging_objects()
+{
+    int damage1 = 5;
+    int damage2 = 10;
+    glColor3f(1.0, 1.0, 1.0);
+    for (int i = 0; i < 3; i++) {
+        d.pos[i] += d.vel[0];
+
+        // reappear objects after moving offscreen
+        if (d.pos[i] < -d.w) {
+            d.pos[i] = g.xres + d.w;
+            
+            // Randomize size when object reappears
+            d.randomize_size();
+        }
+
+        // Check for collision with the Dino
+        if (check_collision(d.pos[i], d.pos[i+1], d.w, d.h, char_coords)) {
+            if (d.w == 6)
+                take_damage(damage1);
+            else if (d.w == 10)
+                take_damage(damage2);
+            d.pos[i] = g.xres + d.w; // Reset the pos of the damaging object
+            d.randomize_size();
+        }
+
+        glPushMatrix();
+	    glColor3ub(139, 69, 19);
+	    glTranslatef(d.pos[i]+1, d.pos[i+1], 0.0f);
+	    glBegin(GL_QUADS);
+            glVertex2f(-d.w, -d.h);
+            glVertex2f(-d.w,  d.h);
+            glVertex2f( d.w,  d.h);
+            glVertex2f( d.w, -d.h);
+	    glEnd();
+	    
+        glPopMatrix();
+        i++;
+    }
+    glColor3f(1.0, 1.0, 1.0);
+}
 
 
 
