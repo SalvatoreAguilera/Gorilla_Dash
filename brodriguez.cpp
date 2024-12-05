@@ -42,7 +42,7 @@ public:
         pos[2] = g.xres / 1.3; // low
         pos[3] = g.yres / 5.2;
 
-        vel[0] = -0.3f; // velocity for moving platforms
+        vel[0] = -0.3f; // velocity for moving objects
         vel[1] = 0.0f;
     }
 
