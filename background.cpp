@@ -364,6 +364,9 @@ Sprite sprite_idle(sprite_img[3].width, sprite_img[3].height, 250, 174, sprite_i
 int size = 3, w = 1000, h = 750;
 void physics()
 {
+	if (paused) {
+	    return;
+	}
 	// move the background
 	g.tex.xc[0] += 0.0001;
 	g.tex.xc[1] += 0.0001;
