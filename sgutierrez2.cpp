@@ -14,7 +14,11 @@
 //each pair is the represents w and h of the image for each corner
 
 extern int current_health;
-
+struct Speed {
+	int runSpeed = 4;
+	int planeSpeed = 8;
+	int platformSpeed = 4;
+} s;
 /*Added everythign regarding character animation, movement, and collision, created multiple classes
     like AlphaImage which reads in the character sprtie, handler_sprite which handles different movememnt events 
     with the character. Lastly loaded all spritesheets and set them up to be ready to read in.
@@ -86,7 +90,7 @@ void handle_running(bool& running, int& direction, bool& idle, Sprite& sprite_ru
     //stop idle animation to start running
     idle = false;
     //direction == -1 then go left | direction == 1 then go right
-    int moveX = 1 * direction;
+    int moveX = s.runSpeed * direction;
     int moveY = 0;
 	static auto start = std::chrono::steady_clock::now();
 	auto now = std::chrono::steady_clock::now();
@@ -261,7 +265,7 @@ auto moveRight = [](auto& plat_coords, Sprite& sprite_plat) {
     for(int i = 10;i < (int)plat_coords.size();i++) {
         int w = plat_coords[i][0], h = plat_coords[i][1];
         
-        int moveX = 1;
+        int moveX = s.platformSpeed;
         sprite_plat.drawSprite(w-moveX, h, i);
         for(int j = 0;j <= 8;j++) {
             if(j % 2  == 0 && j != 8)
@@ -467,14 +471,14 @@ void handle_plane(Sprite& plane, std::vector<std::vector<int>>& plane_coords, st
         plane_coords[0] = {pw,ph, pw,ph+h, pw+w,ph+h, pw+w, ph};
     }
     else {
-        int moveX = -2;
+        int moveX = -s.planeSpeed;
         int moveY = 0;
         if(collision_sprite(character_coords, moveX, moveY, plane_coords) && flight) {
             take_damage(20); //lose 30 health
             health-=20;
             flight = 0;
         }
-        plane_coords[0][0] -= 2;
+        plane_coords[0][0] -= s.planeSpeed;
         
         plane.drawSprite(plane_coords[0][0], height*init_spot + offset, 0);
         int pw = plane_coords[0][0], ph = height*init_spot + offset;
