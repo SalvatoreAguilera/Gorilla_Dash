@@ -262,7 +262,7 @@ void init_hazards()
 
 void take_damage(int damage) {
     current_health -= damage;
-    if (current_health == 0)
+    if (current_health == 0 || current_health < 0)
         end_screen = true;
 }
 
