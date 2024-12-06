@@ -244,6 +244,9 @@ void init_opengl(void) {
         glOrtho(0, g.xres, 0, g.yres, -1, 1);
         // Clear the screen
         glClearColor(1.0, 1.0, 1.0, 1.0);
+        // Enable blending
+        glEnable(GL_BLEND); // Enable blending
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // Set the blending     function
         // glClear(GL_COLOR_BUFFER_BIT);
         // Do this to allow texture maps
         glEnable(GL_TEXTURE_2D);
@@ -378,18 +381,21 @@ void physics() {
         // Move the background
         g.tex.xc[0] += 0.0001;
         g.tex.xc[1] += 0.0001;
-        static bool b = true;
-        if (b) {
-                init_character(char_coords, sprite_run, sprite_block);
-                b = false;
-        }
-        tile_block(sprite_block, block_coords);
 
-        handle_gravity(char_coords, block_coords, dino1.gravity, dino1.jump);
-        handle_running(dino1.running, dino1.direction, dino1.idle, sprite_run, char_coords, block_coords);
-        handle_jumping(dino1.jump, dino1.idle, sprite_jump, char_coords, block_coords, dino1.direction);
-        handle_idle(dino1.idle, sprite_idle, char_coords);
-        handle_platform(sprite_block, block_coords, coords_mp);
+        if (!end_screen) {
+                static bool b = true;
+                if (b) {
+                        init_character(char_coords, sprite_run, sprite_block);
+                        b = false;
+                }
+                tile_block(sprite_block, block_coords);
+
+                handle_gravity(char_coords, block_coords, dino1.gravity, dino1.jump);
+                handle_running(dino1.running, dino1.direction, dino1.idle, sprite_run, char_coords, block_coords);
+                handle_jumping(dino1.jump, dino1.idle, sprite_jump, char_coords, block_coords, dino1.direction);
+                handle_idle(dino1.idle, sprite_idle, char_coords);
+                handle_platform(sprite_block, block_coords, coords_mp);
+        }
 }
 
 void render() {
